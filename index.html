@@ -401,6 +401,42 @@
     color:var(--ink-faint); font-size:13.5px; margin-bottom:28px; background:var(--surface);
   }
 
+  .schem-legend{
+    display:flex; gap:18px; flex-wrap:wrap; justify-content:center; margin-top:14px;
+    font-family:var(--font-mono); font-size:11.5px; color:var(--ink-dim);
+  }
+  .schem-legend span{ display:flex; align-items:center; gap:6px; }
+  .schem-legend i{ width:9px; height:9px; border-radius:50%; display:inline-block; flex:none; }
+
+  /* ---------- Matchup (home/away + opponent record) ---------- */
+  .matchup-grid{
+    display:grid; grid-template-columns:1fr auto 1fr; gap:14px; align-items:center;
+    margin-bottom:10px;
+  }
+  .matchup-side{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:16px 18px; box-shadow:var(--shadow);
+  }
+  .matchup-side .ha-tag{
+    font-family:var(--font-mono); font-size:10.5px; font-weight:600; letter-spacing:.05em;
+    text-transform:uppercase; color:var(--accent); margin-bottom:4px;
+  }
+  .matchup-side .name{ font-family:var(--font-display); font-weight:700; font-size:18px; margin-bottom:10px; }
+  .matchup-side .rec-row{
+    display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:12.5px;
+    color:var(--ink-dim); padding:4px 0; border-top:1px solid var(--line);
+  }
+  .matchup-side .rec-row:first-of-type{ border-top:0; }
+  .matchup-side .rec-row b{ color:var(--ink); font-variant-numeric:tabular-nums; }
+  .matchup-vs{
+    font-family:var(--font-display); font-weight:800; font-size:14px; color:var(--ink-faint);
+    text-align:center;
+  }
+  @media (max-width:640px){
+    .matchup-grid{ grid-template-columns:1fr; }
+    .matchup-vs{ display:none; }
+  }
+
   .roster-chips{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:28px; }
   .roster-chip{
     font-family:var(--font-mono); font-size:12px; color:var(--ink-dim);
@@ -409,6 +445,40 @@
   }
   .roster-chip .p{ color:var(--ink-faint); }
   .roster-chip:hover{ border-color:var(--accent); color:var(--accent); }
+
+  /* ---------- Home: tabs ---------- */
+  .home-tabs{ display:flex; gap:4px; margin-bottom:18px; border-bottom:1px solid var(--line-strong); }
+  .home-tab{
+    font-family:var(--font-display); font-weight:700; font-size:15px; color:var(--ink-faint);
+    background:none; border:0; padding:8px 4px 12px; cursor:pointer; position:relative;
+    margin-right:18px;
+  }
+  .home-tab:hover{ color:var(--ink-dim); }
+  .home-tab.active{ color:var(--ink); }
+  .home-tab.active::after{
+    content:''; position:absolute; left:0; right:0; bottom:-1px; height:2px; background:var(--accent);
+  }
+
+  /* ---------- Home: pick'em ---------- */
+  .pick-row{ display:block; padding:16px 20px; border-bottom:1px solid var(--line); cursor:pointer; }
+  .pick-row:last-child{ border-bottom:0; }
+  .pick-row:hover{ background:var(--surface-raised); }
+  .pick-teams{ display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+  .pick-team{ font-size:14px; font-weight:500; color:var(--ink-dim); display:flex; align-items:center; gap:7px; }
+  .pick-team.fav{ color:var(--ink); font-weight:700; }
+  .pick-team .tag{
+    font-family:var(--font-mono); font-size:9.5px; font-weight:600; letter-spacing:.05em;
+    color:var(--ink-faint); border:1px solid var(--line); border-radius:4px; padding:1px 5px;
+  }
+  .pick-team .rec{ font-family:var(--font-mono); font-size:11.5px; color:var(--ink-faint); }
+  .pick-mid{ font-family:var(--font-mono); font-size:12px; color:var(--ink-faint); }
+  .pick-bar{ display:flex; height:8px; border-radius:999px; overflow:hidden; background:var(--surface-raised); border:1px solid var(--line); }
+  .pick-bar .seg.away{ background:var(--chart-2); }
+  .pick-bar .seg.home{ background:var(--accent); }
+  .pick-probs{
+    display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:11.5px;
+    color:var(--ink-faint); margin-top:5px;
+  }
 
   /* ---------- Home: top props leaderboard ---------- */
   .lb-intro{ color:var(--ink-dim); font-size:14px; margin:0 0 18px; max-width:62ch; line-height:1.6; }
@@ -631,7 +701,7 @@ const PLAYERS = [
   {
     id:'ljackson', name:'Lamar Jackson', team:'BAL', pos:'QB', num:8,
     status:'Questionable', opp:'CIN', oppRank:{pass:18, rec:18},
-    news:'Day-to-day with the left ankle sprain that cost him Weeks 5–6; coach puts his Week 7 return at roughly 50/50.',
+    news:'Still day-to-day with the ankle sprain; Wednesday’s practice participation is the signal to watch for a Sunday start vs. Cincinnati.',
     log:[ {wk:1,opp:'IND',passYd:324,passTd:1,cmp:17}, {wk:2,opp:'NO',passYd:235,passTd:1,cmp:21},
           {wk:3,opp:'DAL',passYd:186,passTd:2,cmp:15}, {wk:4,opp:'TEN',passYd:222,passTd:2,cmp:15} ],
     season:{passYd:241.8, passTd:1.5, cmp:17.0},
@@ -929,7 +999,7 @@ const PLAYERS = [
     news:'Rams’ lead back, healthy.', season:{rushYd:65.5}, props:autoProps({rushYd:65.5}) },
 
   { id:'bpurdy', name:'Brock Purdy', team:'SF', pos:'QB', num:13, status:'Out', opp:'ATL', oppRank:{pass:28},
-    news:'Ruled out for Week 7 with a toe injury; backup starter not yet confirmed publicly.',
+    news:'Unlikely to play through turf toe; Mac Jones has taken the bulk of practice reps but isn’t formally confirmed as the starter yet.',
     season:{passYd:243, passTd:2.33}, props:autoProps({passYd:243, passTd:2.33}) },
 
   { id:'sdarnold', name:'Sam Darnold', team:'SEA', pos:'QB', num:14, status:'Healthy', opp:'KC', oppRank:{pass:15},
@@ -981,76 +1051,76 @@ const PLAYERS = [
 // ---------------------------------------------------------------------------
 const TEAMS = [
   // AFC East
-  { abbr:'BUF', name:'Buffalo Bills', conf:'AFC', div:'East', record:'5-1', placeText:'1st in AFC East', streak:'Won 2 straight', bye:true, nextOpp:null,
+  { abbr:'BUF', name:'Buffalo Bills', conf:'AFC', div:'East', record:'5-1', homeRecord:'2-1', awayRecord:'3-0', placeText:'1st in AFC East', streak:'Won 2 straight', bye:true, nextOpp:null, homeGame:null,
     defense:{sacks:10, blitzRate:null, pressureRate:null, passRank:31, passYdsAllowed:285.8, rushRank:13, rushYdsAllowed:101} },
-  { abbr:'MIA', name:'Miami Dolphins', conf:'AFC', div:'East', record:'0-5', placeText:'4th in AFC East', streak:'Lost 5 straight', nextOpp:'NYJ',
+  { abbr:'MIA', name:'Miami Dolphins', conf:'AFC', div:'East', record:'0-5', homeRecord:'0-2', awayRecord:'0-3', placeText:'4th in AFC East', streak:'Lost 5 straight', nextOpp:'NYJ', homeGame:false,
     defense:{sacks:4, blitzRate:null, pressureRate:null, passRank:15, passYdsAllowed:219.2, rushRank:16, rushYdsAllowed:110.6} },
-  { abbr:'NE', name:'New England Patriots', conf:'AFC', div:'East', record:'4-2', placeText:'2nd in AFC East', streak:'Won 3 straight', nextOpp:'CHI',
+  { abbr:'NE', name:'New England Patriots', conf:'AFC', div:'East', record:'4-2', homeRecord:'3-0', awayRecord:'1-2', placeText:'2nd in AFC East', streak:'Won 3 straight', nextOpp:'CHI', homeGame:false,
     defense:{sacks:14, blitzRate:null, pressureRate:null, passRank:11, passYdsAllowed:209, rushRank:9, rushYdsAllowed:91.8} },
-  { abbr:'NYJ', name:'New York Jets', conf:'AFC', div:'East', record:'2-4', placeText:'3rd in AFC East', streak:'Lost 1 straight', nextOpp:'MIA',
+  { abbr:'NYJ', name:'New York Jets', conf:'AFC', div:'East', record:'2-4', homeRecord:'1-1', awayRecord:'1-3', placeText:'3rd in AFC East', streak:'Lost 1 straight', nextOpp:'MIA', homeGame:true,
     defense:{sacks:17, blitzRate:null, pressureRate:null, passRank:4, passYdsAllowed:185, rushRank:23, rushYdsAllowed:123} },
   // AFC North
-  { abbr:'BAL', name:'Baltimore Ravens', conf:'AFC', div:'North', record:'4-2', placeText:'1st in AFC North (tie)', streak:'Lost 1 straight', nextOpp:'CIN',
+  { abbr:'BAL', name:'Baltimore Ravens', conf:'AFC', div:'North', record:'4-2', homeRecord:'1-1', awayRecord:'3-1', placeText:'1st in AFC North (tie)', streak:'Lost 1 straight', nextOpp:'CIN', homeGame:true,
     defense:{sacks:10, blitzRate:31.4, pressureRate:43.8, passRank:13, passYdsAllowed:210.3, rushRank:11, rushYdsAllowed:100.5} },
-  { abbr:'CIN', name:'Cincinnati Bengals', conf:'AFC', div:'North', record:'3-2', placeText:'4th in AFC North', streak:'Won 1 straight', nextOpp:'BAL',
+  { abbr:'CIN', name:'Cincinnati Bengals', conf:'AFC', div:'North', record:'3-2', homeRecord:'1-1', awayRecord:'2-1', placeText:'4th in AFC North', streak:'Won 1 straight', nextOpp:'BAL', homeGame:false,
     defense:{sacks:17, blitzRate:16.1, pressureRate:40.2, passRank:18, passYdsAllowed:221.2, rushRank:23, rushYdsAllowed:123} },
-  { abbr:'CLE', name:'Cleveland Browns', conf:'AFC', div:'North', record:'4-2', placeText:'1st in AFC North (tiebreak)', streak:'Won 1 straight', nextOpp:'TEN',
+  { abbr:'CLE', name:'Cleveland Browns', conf:'AFC', div:'North', record:'4-2', homeRecord:'3-0', awayRecord:'1-2', placeText:'1st in AFC North (tiebreak)', streak:'Won 1 straight', nextOpp:'TEN', homeGame:false,
     defense:{sacks:19, blitzRate:25.3, pressureRate:null, passRank:8, passYdsAllowed:205.2, rushRank:17, rushYdsAllowed:112.3} },
-  { abbr:'PIT', name:'Pittsburgh Steelers', conf:'AFC', div:'North', record:'4-2', placeText:'1st in AFC North (tie)', streak:'Won 2 straight', nextOpp:'NO',
+  { abbr:'PIT', name:'Pittsburgh Steelers', conf:'AFC', div:'North', record:'4-2', homeRecord:'3-0', awayRecord:'1-2', placeText:'1st in AFC North (tie)', streak:'Won 2 straight', nextOpp:'NO', homeGame:'neutral',
     defense:{sacks:16, blitzRate:26.9, pressureRate:null, passRank:null, passYdsAllowed:222.0, rushRank:null, rushYdsAllowed:103.2} },
   // AFC South
-  { abbr:'HOU', name:'Houston Texans', conf:'AFC', div:'South', record:'2-4', placeText:'2nd in AFC South', streak:'Won 2 straight', nextOpp:'NYG',
+  { abbr:'HOU', name:'Houston Texans', conf:'AFC', div:'South', record:'2-4', homeRecord:'0-3', awayRecord:'2-1', placeText:'2nd in AFC South', streak:'Won 2 straight', nextOpp:'NYG', homeGame:true,
     defense:{sacks:18, blitzRate:null, pressureRate:38.9, passRank:null, passYdsAllowed:null, rushRank:3, rushYdsAllowed:83} },
-  { abbr:'IND', name:'Indianapolis Colts', conf:'AFC', div:'South', record:'2-4', placeText:'3rd in AFC South', streak:'Lost 1 straight', nextOpp:'MIN',
+  { abbr:'IND', name:'Indianapolis Colts', conf:'AFC', div:'South', record:'2-4', homeRecord:'1-2', awayRecord:'1-2', placeText:'3rd in AFC South', streak:'Lost 1 straight', nextOpp:'MIN', homeGame:false,
     defense:{sacks:15, blitzRate:null, pressureRate:29.4, passRank:21, passYdsAllowed:228.7, rushRank:21, rushYdsAllowed:122.5} },
-  { abbr:'JAX', name:'Jacksonville Jaguars', conf:'AFC', div:'South', record:'4-2', placeText:'1st in AFC South', streak:'Lost 1 straight', bye:true, nextOpp:null,
+  { abbr:'JAX', name:'Jacksonville Jaguars', conf:'AFC', div:'South', record:'4-2', homeRecord:'3-1', awayRecord:'1-1', placeText:'1st in AFC South', streak:'Lost 1 straight', bye:true, nextOpp:null, homeGame:null,
     defense:{sacks:11, blitzRate:27, pressureRate:39, passRank:null, passYdsAllowed:null, rushRank:1, rushYdsAllowed:72.2} },
-  { abbr:'TEN', name:'Tennessee Titans', conf:'AFC', div:'South', record:'1-5', placeText:'4th in AFC South', streak:'Won 1 straight', nextOpp:'CLE',
+  { abbr:'TEN', name:'Tennessee Titans', conf:'AFC', div:'South', record:'1-5', homeRecord:'0-3', awayRecord:'1-2', placeText:'4th in AFC South', streak:'Won 1 straight', nextOpp:'CLE', homeGame:true,
     defense:{sacks:10, blitzRate:22, pressureRate:null, passRank:17, passYdsAllowed:220.5, rushRank:21, rushYdsAllowed:122.5} },
   // AFC West
-  { abbr:'DEN', name:'Denver Broncos', conf:'AFC', div:'West', record:'4-2', placeText:'2nd in AFC West', streak:'Won 2 straight', nextOpp:'ARI',
+  { abbr:'DEN', name:'Denver Broncos', conf:'AFC', div:'West', record:'4-2', homeRecord:'3-0', awayRecord:'1-2', placeText:'2nd in AFC West', streak:'Won 2 straight', nextOpp:'ARI', homeGame:true,
     defense:{sacks:18, blitzRate:null, pressureRate:null, passRank:10, passYdsAllowed:208.5, rushRank:31, rushYdsAllowed:139.8} },
-  { abbr:'KC', name:'Kansas City Chiefs', conf:'AFC', div:'West', record:'5-0', placeText:'1st in AFC West', streak:'Won 5 straight', nextOpp:'SEA',
+  { abbr:'KC', name:'Kansas City Chiefs', conf:'AFC', div:'West', record:'5-0', homeRecord:'3-0', awayRecord:'2-0', placeText:'1st in AFC West', streak:'Won 5 straight', nextOpp:'SEA', homeGame:false,
     defense:{sacks:4, blitzRate:null, pressureRate:null, passRank:15, passYdsAllowed:217.2, rushRank:6, rushYdsAllowed:88.8} },
-  { abbr:'LAC', name:'Los Angeles Chargers', conf:'AFC', div:'West', record:'0-6', placeText:'4th in AFC West', streak:'Lost 6 straight', bye:true, nextOpp:null,
+  { abbr:'LAC', name:'Los Angeles Chargers', conf:'AFC', div:'West', record:'0-6', homeRecord:'0-3', awayRecord:'0-3', placeText:'4th in AFC West', streak:'Lost 6 straight', bye:true, nextOpp:null, homeGame:null,
     defense:{sacks:11, blitzRate:null, pressureRate:null, passRank:9, passYdsAllowed:206.2, rushRank:21, rushYdsAllowed:118.6} },
-  { abbr:'LV', name:'Las Vegas Raiders', conf:'AFC', div:'West', record:'3-3', placeText:'3rd in AFC West', streak:'Lost 3 straight', nextOpp:'LAR',
+  { abbr:'LV', name:'Las Vegas Raiders', conf:'AFC', div:'West', record:'3-3', homeRecord:'1-2', awayRecord:'2-1', placeText:'3rd in AFC West', streak:'Lost 3 straight', nextOpp:'LAR', homeGame:true,
     defense:{sacks:10, blitzRate:null, pressureRate:null, passRank:24, passYdsAllowed:237.3, rushRank:28, rushYdsAllowed:134.3} },
   // NFC East
-  { abbr:'DAL', name:'Dallas Cowboys', conf:'NFC', div:'East', record:'2-4', placeText:'3rd in NFC East (tie)', streak:'Lost 2 straight', nextOpp:'PHI',
+  { abbr:'DAL', name:'Dallas Cowboys', conf:'NFC', div:'East', record:'2-4', homeRecord:null, awayRecord:null, placeText:'3rd in NFC East (tie)', streak:'Lost 2 straight', nextOpp:'PHI', homeGame:false,
     defense:{sacks:8, blitzRate:null, pressureRate:null, passRank:23, passYdsAllowed:232.7, rushRank:32, rushYdsAllowed:149.8} },
-  { abbr:'NYG', name:'New York Giants', conf:'NFC', div:'East', record:'3-2-1', placeText:'1st in NFC East', streak:'1-1 last two', nextOpp:'HOU',
+  { abbr:'NYG', name:'New York Giants', conf:'NFC', div:'East', record:'3-2-1', homeRecord:'3-1', awayRecord:'0-1-1', placeText:'1st in NFC East', streak:'1-1 last two', nextOpp:'HOU', homeGame:false,
     defense:{sacks:18, blitzRate:null, pressureRate:null, passRank:5, passYdsAllowed:190.2, rushRank:29, rushYdsAllowed:135.5} },
-  { abbr:'PHI', name:'Philadelphia Eagles', conf:'NFC', div:'East', record:'2-4', placeText:'3rd in NFC East (tie)', streak:'Lost 4 straight', nextOpp:'DAL',
+  { abbr:'PHI', name:'Philadelphia Eagles', conf:'NFC', div:'East', record:'2-4', homeRecord:null, awayRecord:null, placeText:'3rd in NFC East (tie)', streak:'Lost 4 straight', nextOpp:'DAL', homeGame:true,
     defense:{sacks:null, blitzRate:null, pressureRate:null, passRank:26, passYdsAllowed:244.5, rushRank:19, rushYdsAllowed:119.3} },
-  { abbr:'WAS', name:'Washington Commanders', conf:'NFC', div:'East', record:'1-3-1', placeText:'4th in NFC East', streak:'Winless in 2', bye:true, nextOpp:null,
+  { abbr:'WAS', name:'Washington Commanders', conf:'NFC', div:'East', record:'1-4-1', homeRecord:'1-1-1', awayRecord:'0-3', placeText:'4th in NFC East', streak:'Winless in 2', bye:true, nextOpp:null, homeGame:null,
     defense:{sacks:10, blitzRate:null, pressureRate:null, passRank:29, passYdsAllowed:254, rushRank:11, rushYdsAllowed:100.5} },
   // NFC North
-  { abbr:'CHI', name:'Chicago Bears', conf:'NFC', div:'North', record:'4-2', placeText:'2nd in NFC North (tie)', streak:'Won 1 straight', nextOpp:'NE',
+  { abbr:'CHI', name:'Chicago Bears', conf:'NFC', div:'North', record:'4-2', homeRecord:null, awayRecord:null, placeText:'2nd in NFC North (tie)', streak:'Won 1 straight', nextOpp:'NE', homeGame:true,
     defense:{sacks:17, blitzRate:null, pressureRate:null, passRank:14, passYdsAllowed:211.8, rushRank:8, rushYdsAllowed:90.5} },
-  { abbr:'DET', name:'Detroit Lions', conf:'NFC', div:'North', record:'3-2', placeText:'4th in NFC North (tie)', streak:'Won 1 straight', nextOpp:'GB',
+  { abbr:'DET', name:'Detroit Lions', conf:'NFC', div:'North', record:'3-2', homeRecord:null, awayRecord:null, placeText:'4th in NFC North (tie)', streak:'Won 1 straight', nextOpp:'GB', homeGame:true,
     defense:{sacks:20, blitzRate:null, pressureRate:null, passRank:32, passYdsAllowed:297.4, rushRank:15, rushYdsAllowed:107} },
-  { abbr:'GB', name:'Green Bay Packers', conf:'NFC', div:'North', record:'4-2', placeText:'2nd in NFC North (tie)', streak:'Won 2 straight', nextOpp:'DET',
+  { abbr:'GB', name:'Green Bay Packers', conf:'NFC', div:'North', record:'4-2', homeRecord:'2-1', awayRecord:'2-1', placeText:'2nd in NFC North (tie)', streak:'Won 2 straight', nextOpp:'DET', homeGame:false,
     defense:{sacks:14, blitzRate:null, pressureRate:null, passRank:5, passYdsAllowed:181.0, rushRank:24, rushYdsAllowed:127.6} },
-  { abbr:'MIN', name:'Minnesota Vikings', conf:'NFC', div:'North', record:'5-0', placeText:'1st in NFC North', streak:'Won 5 straight', nextOpp:'IND',
+  { abbr:'MIN', name:'Minnesota Vikings', conf:'NFC', div:'North', record:'5-0', homeRecord:'2-0', awayRecord:'3-0', placeText:'1st in NFC North', streak:'Won 5 straight', nextOpp:'IND', homeGame:true,
     defense:{sacks:17, blitzRate:null, pressureRate:null, passRank:3, passYdsAllowed:173.2, rushRank:5, rushYdsAllowed:86.6} },
   // NFC South
-  { abbr:'ATL', name:'Atlanta Falcons', conf:'NFC', div:'South', record:'2-4', placeText:'2nd in NFC South', streak:'Lost 2 straight', nextOpp:'SF',
+  { abbr:'ATL', name:'Atlanta Falcons', conf:'NFC', div:'South', record:'2-4', homeRecord:'0-3', awayRecord:'2-1', placeText:'2nd in NFC South', streak:'Lost 2 straight', nextOpp:'SF', homeGame:true,
     defense:{sacks:16, blitzRate:null, pressureRate:22.9, passRank:28, passYdsAllowed:252, rushRank:4, rushYdsAllowed:83.2} },
-  { abbr:'CAR', name:'Carolina Panthers', conf:'NFC', div:'South', record:'3-2', placeText:'1st in NFC South', streak:'Won 2 straight', nextOpp:'TB',
+  { abbr:'CAR', name:'Carolina Panthers', conf:'NFC', div:'South', record:'3-2', homeRecord:'1-1', awayRecord:'2-1', placeText:'1st in NFC South', streak:'Won 2 straight', nextOpp:'TB', homeGame:true,
     defense:{sacks:9, blitzRate:36.6, pressureRate:22.1, passRank:19, passYdsAllowed:222, rushRank:27, rushYdsAllowed:132.2} },
-  { abbr:'NO', name:'New Orleans Saints', conf:'NFC', div:'South', record:'2-4', placeText:'3rd in NFC South', streak:'Won 1 straight', nextOpp:'PIT',
+  { abbr:'NO', name:'New Orleans Saints', conf:'NFC', div:'South', record:'2-4', homeRecord:'0-3', awayRecord:'2-1', placeText:'3rd in NFC South', streak:'Won 1 straight', nextOpp:'PIT', homeGame:'neutral',
     defense:{sacks:10, blitzRate:35.1, pressureRate:16.2, passRank:25, passYdsAllowed:239.7, rushRank:null, rushYdsAllowed:null} },
-  { abbr:'TB', name:'Tampa Bay Buccaneers', conf:'NFC', div:'South', record:'1-5', placeText:'4th in NFC South', streak:'Lost 1 straight', nextOpp:'CAR',
+  { abbr:'TB', name:'Tampa Bay Buccaneers', conf:'NFC', div:'South', record:'1-5', homeRecord:'0-4', awayRecord:'1-1', placeText:'4th in NFC South', streak:'Lost 1 straight', nextOpp:'CAR', homeGame:false,
     defense:{sacks:11, blitzRate:41.3, pressureRate:17.7, passRank:19, passYdsAllowed:226.6, rushRank:2, rushYdsAllowed:72.8} },
   // NFC West
-  { abbr:'ARI', name:'Arizona Cardinals', conf:'NFC', div:'West', record:'2-4', placeText:'3rd in NFC West', streak:'Won 1 straight', nextOpp:'DEN',
+  { abbr:'ARI', name:'Arizona Cardinals', conf:'NFC', div:'West', record:'2-4', homeRecord:'0-2', awayRecord:'2-2', placeText:'3rd in NFC West', streak:'Won 1 straight', nextOpp:'DEN', homeGame:false,
     defense:{sacks:12, blitzRate:null, pressureRate:null, passRank:22, passYdsAllowed:229.7, rushRank:null, rushYdsAllowed:null} },
-  { abbr:'LAR', name:'Los Angeles Rams', conf:'NFC', div:'West', record:'2-4', placeText:'4th in NFC West', streak:'Lost 2 straight', nextOpp:'LV',
+  { abbr:'LAR', name:'Los Angeles Rams', conf:'NFC', div:'West', record:'2-4', homeRecord:'1-3', awayRecord:'1-1', placeText:'4th in NFC West', streak:'Lost 2 straight', nextOpp:'LV', homeGame:false,
     defense:{sacks:10, blitzRate:null, pressureRate:null, passRank:2, passYdsAllowed:167, rushRank:null, rushYdsAllowed:null} },
-  { abbr:'SF', name:'San Francisco 49ers', conf:'NFC', div:'West', record:'6-0', placeText:'1st in NFC West', streak:'Won 6 straight', nextOpp:'ATL',
+  { abbr:'SF', name:'San Francisco 49ers', conf:'NFC', div:'West', record:'6-0', homeRecord:'4-0', awayRecord:'2-0', placeText:'1st in NFC West', streak:'Won 6 straight', nextOpp:'ATL', homeGame:false,
     defense:{sacks:11, blitzRate:null, pressureRate:null, passRank:12, passYdsAllowed:209.8, rushRank:null, rushYdsAllowed:null} },
-  { abbr:'SEA', name:'Seattle Seahawks', conf:'NFC', div:'West', record:'3-3', placeText:'2nd in NFC West', streak:'Lost 1 straight', nextOpp:'KC',
+  { abbr:'SEA', name:'Seattle Seahawks', conf:'NFC', div:'West', record:'3-3', homeRecord:'2-1', awayRecord:'1-2', placeText:'2nd in NFC West', streak:'Lost 1 straight', nextOpp:'KC', homeGame:true,
     defense:{sacks:16, blitzRate:null, pressureRate:null, passRank:1, passYdsAllowed:141.3, rushRank:null, rushYdsAllowed:null} },
 ];
 
@@ -1109,45 +1179,108 @@ function fmt(n, decimals){ return n.toLocaleString(undefined,{minimumFractionDig
 
 function statusClass(s){ return 'status-'+s.toLowerCase(); }
 
-function renderNgsPanel(player){
+// League-wide average pass-direction split (commonly cited public figure) —
+// used as the baseline whenever a QB's own field-side breakdown isn't public.
+const LEAGUE_HORIZ = { left:28, middle:38, right:34 };
+
+// Models a short/intermediate/deep shape from a QB's real avg. intended air
+// yards (an actual public NGS number) by shifting a league-average baseline —
+// an approximation, not a measured split, and labeled as such wherever shown.
+function depthProfileFromAirYards(ay){
+  const base = { short:62, intermediate:28, deep:10 };
+  if(ay == null) return base;
+  const shift = Math.max(-25, Math.min(25, (ay - 7.8) * 3.2));
+  let short = Math.max(15, Math.min(80, base.short - shift*0.6));
+  let deep = Math.max(3, Math.min(40, base.deep + shift*0.6));
+  let intermediate = Math.max(10, 100 - short - deep);
+  const sum = short + intermediate + deep;
+  return { short: short/sum*100, intermediate: intermediate/sum*100, deep: deep/sum*100 };
+}
+
+function qbFieldProfile(player){
   const ngs = player.ngs;
-  if(!ngs || (!ngs.directional && !ngs.airYards)){
-    return `<div class="tendency-unavailable">Next Gen Stats doesn't publish a per-player field-side / depth-of-target breakdown on its public pages — that chart only exists behind NFL's paid data products. No number is shown here rather than an invented one.</div>`;
+  if(ngs && ngs.directional && ngs.depth) return { horiz: ngs.directional, depth: ngs.depth, level:'measured' };
+  if(ngs && ngs.airYards != null) return { horiz: LEAGUE_HORIZ, depth: depthProfileFromAirYards(ngs.airYards), level:'partial' };
+  return { horiz: LEAGUE_HORIZ, depth: depthProfileFromAirYards(null), level:'league' };
+}
+
+function renderPassFieldSvg(profile){
+  const rows = [ ['Deep', profile.depth.deep], ['Mid', profile.depth.intermediate], ['Short', profile.depth.short] ];
+  const cols = [ ['Left', profile.horiz.left], ['Middle', profile.horiz.middle], ['Right', profile.horiz.right] ];
+  const fx = 54, fy = 14, fw = 255, fh = 180;
+  const colW = fw/3, rowH = fh/3;
+  const cellPcts = rows.map(r => cols.map(c => r[1]*c[1]/100));
+  const maxPct = Math.max(...cellPcts.flat());
+
+  let cells = '';
+  rows.forEach(([rLabel, rPct], ri) => {
+    cols.forEach(([cLabel, cPct], ci) => {
+      const pct = rPct*cPct/100;
+      const x = fx + ci*colW, y = fy + ri*rowH;
+      const opacity = (0.10 + (pct/maxPct)*0.72).toFixed(2);
+      const cx = x+colW/2, cy = y+rowH/2;
+      cells += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${colW.toFixed(1)}" height="${rowH.toFixed(1)}" fill="var(--chart-1)" fill-opacity="${opacity}"/>`;
+      cells += `<rect x="${(cx-16).toFixed(1)}" y="${(cy-10).toFixed(1)}" width="32" height="20" rx="5" fill="var(--surface)" fill-opacity="0.88"/>`;
+      cells += `<text x="${cx.toFixed(1)}" y="${(cy+4).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="600" fill="var(--ink)">${Math.round(pct)}%</text>`;
+    });
+  });
+
+  let rowLabels = '';
+  rows.forEach(([rLabel], ri) => {
+    const cy = fy + ri*rowH + rowH/2;
+    rowLabels += `<text x="${fx-8}" y="${(cy+3).toFixed(1)}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="9.5" letter-spacing="0.05em" fill="var(--ink-faint)">${rLabel.toUpperCase()}</text>`;
+  });
+  let colLabels = '';
+  cols.forEach(([cLabel], ci) => {
+    const cx = fx + ci*colW + colW/2;
+    colLabels += `<text x="${cx.toFixed(1)}" y="${fy+fh+16}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" letter-spacing="0.05em" fill="var(--ink-faint)">${cLabel.toUpperCase()}</text>`;
+  });
+
+  let gridLines = '';
+  for(let i=1;i<3;i++){
+    gridLines += `<line x1="${fx+i*colW}" y1="${fy}" x2="${fx+i*colW}" y2="${fy+fh}" stroke="var(--line)" stroke-width="1"/>`;
+    gridLines += `<line x1="${fx}" y1="${fy+i*rowH}" x2="${fx+fw}" y2="${fy+i*rowH}" stroke="var(--line)" stroke-width="1"/>`;
   }
-  let rows = '';
-  if(ngs.directional){
-    const d = ngs.directional;
-    rows += `
-      <div class="tendency-row">
-        <div class="t-lbl">Field side (share of attempts)</div>
-        <div class="tendency-bar">
-          <div class="seg" style="width:${d.left}%; background:var(--chart-1)">Left ${d.left}%</div>
-          <div class="seg" style="width:${d.middle}%; background:var(--chart-2)">Middle ${d.middle}%</div>
-          <div class="seg" style="width:${d.right}%; background:var(--chart-3)">Right ${d.right}%</div>
-        </div>
-      </div>`;
+
+  const qbX = fx+fw/2;
+  return `
+  <svg viewBox="0 0 320 236" width="100%" style="max-width:420px; display:block; margin:0 auto;">
+    <rect x="${fx}" y="${fy}" width="${fw}" height="${fh}" fill="var(--surface-raised)" stroke="var(--line-strong)" stroke-width="1.5" rx="4"/>
+    ${gridLines}
+    ${cells}
+    ${rowLabels}
+    ${colLabels}
+    <line x1="${fx}" y1="${fy+fh+1}" x2="${fx+fw}" y2="${fy+fh+1}" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5 4"/>
+    <circle cx="${qbX}" cy="${fy+fh+26}" r="7" fill="var(--ink)"/>
+    <text x="${qbX}" y="${fy+fh+29}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" font-weight="700" fill="var(--surface)">QB</text>
+  </svg>`;
+}
+
+function renderNgsPanel(player){
+  const profile = qbFieldProfile(player);
+  const fieldSvg = renderPassFieldSvg(profile);
+  const levelNote = profile.level === 'measured'
+    ? 'Built from NFL Next Gen Stats’ measured field-side and depth-of-target splits for this QB.'
+    : profile.level === 'partial'
+    ? 'Depth shading is modeled from this QB’s real NGS average intended air yards; left/middle/right uses the NFL-wide average split since NGS doesn’t publish a per-player field-side breakdown.'
+    : 'NGS doesn’t publish a per-player breakdown for this QB — this shows the NFL-wide average shape, not this QB’s own tendency.';
+
+  let statTiles = '';
+  if(player.ngs){
+    const ngs = player.ngs;
+    statTiles = `<div class="stat-tiles" style="margin-top:16px; margin-bottom:0">
+      ${ngs.airYards!=null?`<div class="stat-tile"><div class="lbl">Avg. Intended Air Yards</div><div class="big">${fmt(ngs.airYards,1)}</div></div>`:''}
+      ${ngs.aggressiveness!=null?`<div class="stat-tile"><div class="lbl">Aggressiveness</div><div class="big">${fmt(ngs.aggressiveness,1)}%</div></div>`:''}
+      ${ngs.timeToThrow!=null?`<div class="stat-tile"><div class="lbl">Time to Throw</div><div class="big">${fmt(ngs.timeToThrow,2)}s</div></div>`:''}
+    </div>`;
   }
-  if(ngs.depth){
-    const dp = ngs.depth;
-    rows += `
-      <div class="tendency-row">
-        <div class="t-lbl">Depth of target (share of attempts)</div>
-        <div class="tendency-bar">
-          <div class="seg" style="width:${dp.short}%; background:var(--chart-1)">Short ${dp.short}%</div>
-          <div class="seg" style="width:${dp.intermediate}%; background:var(--chart-2)">Mid ${dp.intermediate}%</div>
-          <div class="seg" style="width:${dp.deep}%; background:var(--chart-3)">Deep ${dp.deep}%</div>
-        </div>
-      </div>`;
-  }
-  if(!rows){
-    rows = `<div class="stat-tiles" style="margin-bottom:0">
-      ${ngs.airYards!=null ? `<div class="stat-tile"><div class="lbl">Avg. Intended Air Yards</div><div class="big">${fmt(ngs.airYards,1)}</div></div>` : ''}
-      ${ngs.aggressiveness!=null ? `<div class="stat-tile"><div class="lbl">Aggressiveness</div><div class="big">${fmt(ngs.aggressiveness,1)}%</div></div>` : ''}
-      ${ngs.timeToThrow!=null ? `<div class="stat-tile"><div class="lbl">Time to Throw</div><div class="big">${fmt(ngs.timeToThrow,2)}s</div></div>` : ''}
-    </div>
-    <p class="tendency-note">NGS doesn't publish a field-side/depth-of-target split for this QB — these are the real aggregate NGS numbers that are public.</p>`;
-  }
-  return `<h3 class="section-lbl">Passing tendencies (NFL Next Gen Stats)</h3><div class="tendency-wrap">${rows}</div>`;
+
+  return `<h3 class="section-lbl">Passing tendencies</h3>
+    <div class="tendency-wrap">
+      ${fieldSvg}
+      <p class="tendency-note" style="text-align:center">${levelNote}</p>
+      ${statTiles}
+    </div>`;
 }
 
 function renderPlayer(id){
@@ -1257,11 +1390,50 @@ function renderPlayer(id){
   `;
 }
 
-// ---------- home: top props leaderboard ----------
-function renderHome(){
-  const results = document.getElementById('results');
-  const ranked = [];
+// ---------- home: top props leaderboard + pick'em ----------
+let homeTab = 'props';
 
+function parseRecord(str){
+  const parts = String(str).split('-').map(Number);
+  return { w:parts[0]||0, l:parts[1]||0, t:parts[2]||0 };
+}
+
+// Transparent Elo-ish rating: season win% is the backbone, a small bump for
+// better-ranked defenses (pass+rush rank averaged), a small home-field bump.
+function teamRating(team){
+  const { w, l, t } = parseRecord(team.record);
+  const games = w+l+t;
+  const winPct = games ? (w + t*0.5)/games : 0.5;
+  const ranks = [team.defense.passRank, team.defense.rushRank].filter(r => r != null);
+  const avgRank = ranks.length ? ranks.reduce((a,b)=>a+b,0)/ranks.length : 16.5;
+  const defenseScore = (32-avgRank)/32*10;
+  const homeBonus = team.homeGame === true ? 6 : 0;
+  return winPct*60 + defenseScore + homeBonus;
+}
+function winProbability(teamA, teamB){
+  const diff = teamRating(teamA) - teamRating(teamB);
+  const p = 1/(1+Math.pow(10, -diff/28));
+  return Math.max(0.08, Math.min(0.92, p));
+}
+function weekGames(){
+  const seen = new Set();
+  const games = [];
+  TEAMS.forEach(t => {
+    if(t.bye || !t.nextOpp) return;
+    const opp = TEAMS.find(x => x.abbr === t.nextOpp);
+    if(!opp) return;
+    const key = [t.abbr, opp.abbr].sort().join('-');
+    if(seen.has(key)) return;
+    seen.add(key);
+    if(t.homeGame === true) games.push({ home:t, away:opp, neutral:false });
+    else if(t.homeGame === false) games.push({ home:opp, away:t, neutral:false });
+    else games.push({ home:t, away:opp, neutral:true });
+  });
+  return games;
+}
+
+function renderTopProps(){
+  const ranked = [];
   PLAYERS.forEach(player => {
     if(player.bye || player.status === 'Out') return;
     (player.props || []).forEach(prop => {
@@ -1271,11 +1443,8 @@ function renderHome(){
       ranked.push({ player, prop, c, pick, pct });
     });
   });
-
   ranked.sort((a,b) => b.pct - a.pct);
-  const top10 = ranked.slice(0, 10);
-
-  const rows = top10.map((r,i) => {
+  const rows = ranked.slice(0, 10).map((r,i) => {
     const pctLabel = Math.round(r.pct*100) + '%';
     const lineLabel = (r.prop.estimated ? '~' : '') + fmt(r.prop.line,1);
     return `
@@ -1296,15 +1465,135 @@ function renderHome(){
       </div>`;
   }).join('');
 
-  results.innerHTML = `
-    <h3 class="section-lbl">Top 10 props this week</h3>
+  return `
     <p class="lb-intro">Every active prop across the roster, ranked by model confidence — whichever side (over or under) the projection leans hardest, regardless of player or position. Search above for any individual player or team.</p>
-    <div class="leaderboard">${rows}</div>
+    <div class="leaderboard">${rows}</div>`;
+}
+
+function renderPickem(){
+  const games = weekGames();
+  const rows = games.map(g => {
+    const probHome = winProbability(g.home, g.away);
+    const probAway = 1 - probHome;
+    const favored = probHome >= probAway ? g.home : g.away;
+    const homePct = Math.round(probHome*100), awayPct = 100-homePct;
+    return `
+      <div class="pick-row" data-type="team" data-id="${favored.abbr}">
+        <div class="pick-teams">
+          <div class="pick-team ${favored===g.away?'fav':''}">
+            <span class="tag">${g.neutral?'':'AWAY'}</span> ${g.away.name} <span class="rec">${g.away.record}</span>
+          </div>
+          <div class="pick-mid">${g.neutral?'N':'@'}</div>
+          <div class="pick-team ${favored===g.home?'fav':''}">
+            <span class="tag">${g.neutral?'NEUTRAL':'HOME'}</span> ${g.home.name} <span class="rec">${g.home.record}</span>
+          </div>
+        </div>
+        <div class="pick-bar">
+          <div class="seg away" style="width:${awayPct}%"></div>
+          <div class="seg home" style="width:${homePct}%"></div>
+        </div>
+        <div class="pick-probs"><span>${awayPct}%</span><span>${homePct}%</span></div>
+      </div>`;
+  }).join('');
+
+  return `
+    <p class="lb-intro">Win probability for every Week 7 game — built from each team's season win%, a small bump for a better-ranked defense, and home-field edge. Click a game to see that team's full profile.</p>
+    <div class="leaderboard pickem-list">${rows || '<div class="lb-row">No Week 7 games on file.</div>'}</div>
+    <p class="legend" style="margin-top:-14px">Model: win% × 60, plus up to 10 points for defensive rank, plus a 6-point home-field edge, compared on a logistic curve. Same transparent-math approach as the prop model above — not a guarantee.</p>`;
+}
+
+function renderHome(){
+  const results = document.getElementById('results');
+  results.innerHTML = `
+    <div class="home-tabs">
+      <button class="home-tab ${homeTab==='props'?'active':''}" data-tab="props">Top Props</button>
+      <button class="home-tab ${homeTab==='pickem'?'active':''}" data-tab="pickem">Pick'em</button>
+    </div>
+    <h3 class="section-lbl">${homeTab === 'props' ? 'Top 10 props this week' : "Week 7 pick'em"}</h3>
+    ${homeTab === 'props' ? renderTopProps() : renderPickem()}
   `;
 }
+function setHomeTab(tab){ homeTab = tab; renderHome(); }
 
 // ---------- team profile ----------
 function streakClass(streak){ return streak && streak.toLowerCase().startsWith('won') ? 'win' : 'loss'; }
+
+function homeAwayLabel(team){
+  if(team.homeGame === true) return 'Home';
+  if(team.homeGame === false) return 'Away';
+  if(team.homeGame === 'neutral') return 'Neutral site';
+  return '';
+}
+
+function renderMatchupBlock(team){
+  if(team.bye || !team.nextOpp) return '';
+  const opp = TEAMS.find(t => t.abbr === team.nextOpp);
+  if(!opp) return '';
+  const side = t => `
+    <div class="matchup-side">
+      <div class="ha-tag">${homeAwayLabel(t)}</div>
+      <div class="name">${t.name}</div>
+      <div class="rec-row"><span>Overall</span><b>${t.record}</b></div>
+      <div class="rec-row"><span>Home</span><b>${t.homeRecord ?? '—'}</b></div>
+      <div class="rec-row"><span>Away</span><b>${t.awayRecord ?? '—'}</b></div>
+    </div>`;
+  const neutralNote = team.homeGame === 'neutral' ? `<p class="legend" style="margin:10px 0 0">International game — neutral site, no home-field edge for either team.</p>` : '';
+  return `
+    <h3 class="section-lbl">This week's matchup</h3>
+    <div class="matchup-grid">
+      ${side(team)}
+      <div class="matchup-vs">VS</div>
+      ${side(opp)}
+    </div>
+    ${neutralNote}`;
+}
+
+function renderDefenseSchematic(team){
+  const blitzRate = team.defense.blitzRate;
+  const assumed = blitzRate == null;
+  const rate = assumed ? 25 : blitzRate;
+  const extra = Math.max(0, Math.min(3, Math.round(rate/15)));
+  const rushers = 4 + extra;
+  const coverage = 11 - rushers;
+
+  const qb = {x:160, y:176};
+  const olXs = [110,135,160,185,210];
+  const wrXs = [55, 265];
+  const rushXs = Array.from({length:rushers}, (_,i) => 90 + i*(140/Math.max(1,rushers-1||1)));
+  const covXs = Array.from({length:coverage}, (_,i) => 50 + i*(220/Math.max(1,coverage-1||1)));
+
+  const offenseDots = [...olXs, ...wrXs].map(x => `<circle cx="${x}" cy="150" r="6" fill="var(--ink)"/>`).join('')
+    + `<circle cx="${qb.x}" cy="${qb.y}" r="7" fill="var(--ink)"/>`
+    + `<text x="${qb.x}" y="${qb.y+3}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="7" font-weight="700" fill="var(--surface)">QB</text>`;
+
+  const rushArrows = rushXs.map(x => `
+    <line x1="${x.toFixed(1)}" y1="118" x2="${qb.x}" y2="${qb.y-10}" stroke="var(--bad)" stroke-width="1.6" marker-end="url(#arrowhead)"/>
+    <circle cx="${x.toFixed(1)}" cy="118" r="6" fill="var(--bad)"/>`).join('');
+
+  const covDots = covXs.map(x => `<circle cx="${x.toFixed(1)}" cy="62" r="6" fill="var(--chart-2)"/>`).join('');
+
+  return `
+    <h3 class="section-lbl">How this defense tends to line up</h3>
+    <div class="tendency-wrap">
+      <svg viewBox="0 0 320 200" width="100%" style="max-width:420px; display:block; margin:0 auto;">
+        <defs>
+          <marker id="arrowhead" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 0, 7 3.5, 0 7" fill="var(--bad)"/>
+          </marker>
+        </defs>
+        <line x1="20" y1="150" x2="300" y2="150" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5 4"/>
+        ${offenseDots}
+        ${rushArrows}
+        ${covDots}
+      </svg>
+      <div class="schem-legend">
+        <span><i style="background:var(--ink)"></i> Offense</span>
+        <span><i style="background:var(--bad)"></i> Rushing the passer (${rushers})</span>
+        <span><i style="background:var(--chart-2)"></i> Dropping into coverage (${coverage})</span>
+      </div>
+      <p class="tendency-note" style="text-align:center">Illustrative, not a real charted play — rush/coverage counts are shaped by ${assumed ? 'a league-average blitz rate (this team\'s own rate isn\'t public)' : `this team's own ${rate}% blitz rate`} on an average passing down.</p>
+    </div>`;
+}
 
 function renderTeam(abbr){
   const team = TEAMS.find(t => t.abbr === abbr);
@@ -1325,9 +1614,11 @@ function renderTeam(abbr){
       <div class="next-matchup">
         <div class="lbl">Record</div>
         <div class="val">${team.record}</div>
-        <div class="rank">${team.bye ? 'BYE in Week 7' : 'Week 7: vs ' + team.nextOpp}</div>
+        <div class="rank">${team.bye ? 'BYE in Week 7' : 'Week 7: ' + (team.homeGame===false?'@ ':'vs ') + team.nextOpp}</div>
       </div>
     </div>
+
+    ${renderMatchupBlock(team)}
 
     <h3 class="section-lbl">Defense this season</h3>
     <div class="stat-tiles">
@@ -1338,6 +1629,8 @@ function renderTeam(abbr){
       <div class="stat-tile"><div class="lbl">Rush Yds Allowed</div><div class="big">${d.rushYdsAllowed ?? '—'}</div><div class="rank">${d.rushRank ? '#'+d.rushRank+' in NFL' : ''}</div></div>
     </div>
     ${(d.blitzRate==null || d.pressureRate==null) ? `<p class="legend" style="margin-top:-18px">Blitz/pressure rate is NFL Next Gen Stats data — not every team's figure was confirmed via public pages at research time.</p>` : ''}
+
+    ${renderDefenseSchematic(team)}
 
     <h3 class="section-lbl">Players on this page</h3>
     ${roster.length ? `<div class="roster-chips">${roster.map(p => `<button class="roster-chip" data-type="player" data-id="${p.id}"><span class="p">${p.pos}</span> ${p.name}</button>`).join('')}</div>` : `<p class="legend" style="margin-top:0">No players from ${team.abbr} are loaded individually yet — search by name if you're after someone specific.</p>`}
@@ -1403,6 +1696,10 @@ document.addEventListener('click', e => {
   if(rosterBtn) selectItem(rosterBtn.dataset.type, rosterBtn.dataset.id);
   const lbRow = e.target.closest('.lb-row');
   if(lbRow) selectItem(lbRow.dataset.type, lbRow.dataset.id);
+  const pickRow = e.target.closest('.pick-row');
+  if(pickRow) selectItem(pickRow.dataset.type, pickRow.dataset.id);
+  const homeTabBtn = e.target.closest('.home-tab');
+  if(homeTabBtn) setHomeTab(homeTabBtn.dataset.tab);
 });
 
 const brandHome = document.getElementById('brandHome');
