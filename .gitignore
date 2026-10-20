@@ -1,0 +1,4 @@
+node_modules/
+data-pipeline/*.csv
+data-pipeline/*.csv.gz
+data-pipeline/nfl_data.json

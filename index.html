@@ -588,11 +588,11 @@
     <div id="suggestBox" class="suggest" hidden></div>
     <div class="chips">
       <span>Quick picks:</span>
-      <button class="chip" data-type="player" data-id="jjefferson">J. Jefferson</button>
-      <button class="chip" data-type="player" data-id="jallen">J. Allen</button>
-      <button class="chip" data-type="player" data-id="cmccaffrey">C. McCaffrey</button>
-      <button class="chip" data-type="player" data-id="tkelce">T. Kelce</button>
-      <button class="chip" data-type="player" data-id="jchase">J. Chase</button>
+      <button class="chip" data-type="player" data-id="justinjeffersonmin">J. Jefferson</button>
+      <button class="chip" data-type="player" data-id="joshallenbuf">J. Allen</button>
+      <button class="chip" data-type="player" data-id="christianmccaffreysf">C. McCaffrey</button>
+      <button class="chip" data-type="player" data-id="traviskelcekc">T. Kelce</button>
+      <button class="chip" data-type="player" data-id="jamarrchasecin">J. Chase</button>
     </div>
     <div class="teams-row">
       <span>Teams:</span>
@@ -609,7 +609,7 @@
   <details class="method" id="methodDetails">
     <summary>How these projections are built <span class="ic">+</span></summary>
     <div class="method-body">
-      <p>Every number on this page is computed in your browser from a data snapshot researched against public sources (ESPN game logs, team injury reports, and public betting-market references) as of the "Updated" timestamp above — there's no hidden model and no outside call at page load. A production version would automate that same research each morning from free public sources (ESPN's public scoreboard/roster endpoints, the <code>nflverse</code> play-by-play archive, and team injury reports) and recompute on that schedule — nothing here depends on a paid odds feed. Lines marked <span class="est-flag">~</span> are pace-based estimates because a firm Week 7 number wasn't posted at research time, not a live quote.</p>
+      <p>Every number on this page is computed in your browser from <code>nfl_data.json</code>, a file built by a script (<code>data-pipeline/build_data.py</code>) that pulls real public data: every game log, pass-direction split, and sack/pressure count comes straight from <a href="https://github.com/nflverse/nflverse-data" target="_blank" rel="noopener">nflverse's play-by-play archive</a> (the same data NFL broadcasts are built on); records, streaks, home/away splits, and the week's schedule come from ESPN's public standings and scoreboard endpoints. Nothing here depends on a paid odds feed or a hand-typed number — re-running the script and republishing that one JSON file refreshes the entire site. Lines marked <span class="est-flag">~</span> are this season's pace rather than a live sportsbook quote, since no source here provides betting lines.</p>
       <div class="method-grid">
         <div class="m">
           <h4>1. Blended baseline</h4>
@@ -628,12 +628,12 @@
           <p>Game-to-game variance (from a real log, or a generic estimate when one isn't on file) sets a spread around the projection; that spread estimates the odds of clearing the line — shown as a percentage, never a lock.</p>
         </div>
         <div class="m">
-          <h4>5. Two tiers of depth</h4>
-          <p>13 "featured" players carry a full 5-game log and researched market lines. Everyone else — the rest of the league's starting QBs and top skill players — runs on season-pace averages only, clearly labeled "Season snapshot," with the line set to that pace rather than a sourced market number.</p>
+          <h4>5. Every QB's field chart is real</h4>
+          <p>Next Gen Stats' free pages don't publish a per-player field-side/depth breakdown, but <code>nflverse</code>'s raw play-by-play logs the actual target location and air yards on every attempt — so each starting QB's passing-tendency field here is their own measured shape, not a league-average guess.</p>
         </div>
         <div class="m">
-          <h4>6. Why QB passing charts are mostly blank</h4>
-          <p>Next Gen Stats' free public pages don't publish a per-player field-side or depth-of-target breakdown — that level of detail is behind NFL's paid data products. Where NGS does publish a real aggregate (avg. intended air yards, aggressiveness, time to throw), it's shown; otherwise the panel says so rather than estimating a chart.</p>
+          <h4>6. Roster coverage</h4>
+          <p>Every team's leading passer, plus its top 2 rushers, top 3 receivers, and top tight end by volume, auto-qualify once they clear a minimum-attempts floor — no hand-picking, so the roster updates itself as workloads shift week to week.</p>
         </div>
       </div>
     </div>
@@ -647,11 +647,14 @@
 
 <script>
 // ---------------------------------------------------------------------------
-// Sample data — stands in for a daily pull from free public endpoints
-// (ESPN public API for box scores/rosters/news, nflverse for play-by-play
-// aggregates, team-published injury reports).
+// Real data, fetched at load from nfl_data.json — generated by
+// data-pipeline/build_data.py from nflverse play-by-play/rosters/injuries
+// and ESPN's standings/scoreboard endpoints. Re-run that script and publish
+// a fresh nfl_data.json to refresh the whole site for a new week.
 // ---------------------------------------------------------------------------
-const ASOF = new Date(2026, 9, 19, 9, 0); // Mon Oct 19, 2026 — stats through Week 6, lines for Week 7
+let PLAYERS = [];
+let TEAMS = [];
+let META = {};
 
 const STATUS_FACTOR = { Healthy:1, Probable:0.98, Questionable:0.93, Out:0 };
 const POS_RANK_KEY = { QB:'pass', RB:'rush', WR:'rec', TE:'rec' };
@@ -659,470 +662,6 @@ const STAT_LABELS = {
   passYd:'Pass Yds', passTd:'Pass TDs', cmp:'Cmp',
   rushYd:'Rush Yds', rec:'Rec', recYd:'Rec Yds', recTd:'Rec TDs'
 };
-const PROP_META = {
-  passYd:['Passing Yards','yds'], passTd:['Passing TDs','td'], cmp:['Completions','cmp'],
-  rushYd:['Rushing Yards','yds'], rec:['Receptions','rec'], recYd:['Receiving Yards','yds'], recTd:['Receiving TDs','td']
-};
-// Auto-builds prop cards straight from a season-average line for the league-wide
-// "lite tier" roster — there's no per-player market line to source at this scale,
-// so the line is the season pace itself, always flagged as an estimate.
-function autoProps(season){
-  return Object.keys(season).filter(k => PROP_META[k]).map(k => ({
-    key:k, label:PROP_META[k][0], unit:PROP_META[k][1],
-    line: Math.round(season[k]*2)/2, estimated:true
-  }));
-}
-
-const PLAYERS = [
-  {
-    id:'jallen', name:'Josh Allen', team:'BUF', pos:'QB', num:17,
-    status:'Healthy', bye:true, opp:'BYE',
-    news:'No Week 7 opponent — Buffalo is on its bye. Shown below: Week 6 form and season pace.',
-    log:[ {wk:2,opp:'DET',passYd:248,passTd:3,cmp:20}, {wk:3,opp:'LAC',passYd:204,passTd:0,cmp:16},
-          {wk:4,opp:'NE',passYd:253,passTd:1,cmp:23}, {wk:5,opp:'LAR',passYd:210,passTd:1,cmp:12},
-          {wk:6,opp:'LV',passYd:255,passTd:2,cmp:23} ],
-    season:{passYd:250.7, passTd:1.5, cmp:18.8},
-    props:[]
-  },
-  {
-    id:'pmahomes', name:'Patrick Mahomes', team:'KC', pos:'QB', num:15,
-    status:'Healthy', opp:'SEA', oppRank:{pass:1, rec:1},
-    news:'No injury designation; Chiefs host a short week before the Week 7 trip to Seattle.',
-    log:[ {wk:1,opp:'DEN',passYd:184,passTd:2,cmp:15}, {wk:2,opp:'IND',passYd:382,passTd:3,cmp:32},
-          {wk:3,opp:'MIA',passYd:246,passTd:2,cmp:20}, {wk:4,opp:'LV',passYd:225,passTd:2,cmp:15},
-          {wk:5,opp:'LAC',passYd:272,passTd:0,cmp:23} ],
-    season:{passYd:261.8, passTd:1.8, cmp:21.0},
-    props:[
-      {key:'passYd', label:'Passing Yards', unit:'yds', line:220.5},
-      {key:'cmp', label:'Completions', unit:'cmp', line:21.5, estimated:true},
-      {key:'passTd', label:'Passing TDs', unit:'td', line:1.5, estimated:true},
-    ]
-  },
-  {
-    id:'ljackson', name:'Lamar Jackson', team:'BAL', pos:'QB', num:8,
-    status:'Questionable', opp:'CIN', oppRank:{pass:18, rec:18},
-    news:'Still day-to-day with the ankle sprain; Wednesday’s practice participation is the signal to watch for a Sunday start vs. Cincinnati.',
-    log:[ {wk:1,opp:'IND',passYd:324,passTd:1,cmp:17}, {wk:2,opp:'NO',passYd:235,passTd:1,cmp:21},
-          {wk:3,opp:'DAL',passYd:186,passTd:2,cmp:15}, {wk:4,opp:'TEN',passYd:222,passTd:2,cmp:15} ],
-    season:{passYd:241.8, passTd:1.5, cmp:17.0},
-    props:[
-      {key:'passYd', label:'Passing Yards', unit:'yds', line:219.5},
-      {key:'passTd', label:'Passing TDs', unit:'td', line:1.5, estimated:true},
-      {key:'cmp', label:'Completions', unit:'cmp', line:17.5, estimated:true},
-    ]
-  },
-  {
-    id:'cmccaffrey', name:'Christian McCaffrey', team:'SF', pos:'RB', num:23,
-    status:'Healthy', opp:'ATL', oppRank:{rush:1, rec:19},
-    news:'Full workload back since clearing offseason Achilles concerns; Thursday rest day was load management, not injury.',
-    log:[ {wk:1,opp:'LAR',rushYd:68,rec:5,recYd:20}, {wk:2,opp:'MIA',rushYd:23,rec:4,recYd:43},
-          {wk:3,opp:'ARI',rushYd:75,rec:4,recYd:41}, {wk:4,opp:'DEN',rushYd:52,rec:3,recYd:18},
-          {wk:5,opp:'SEA',rushYd:68,rec:3,recYd:15} ],
-    season:{rushYd:57.2, rec:3.8, recYd:27.4},
-    props:[
-      {key:'rushYd', label:'Rushing Yards', unit:'yds', line:61.5, estimated:true},
-      {key:'rec', label:'Receptions', unit:'rec', line:4.5, estimated:true},
-      {key:'recYd', label:'Receiving Yards', unit:'yds', line:27.5, estimated:true},
-    ]
-  },
-  {
-    id:'bbrobinson', name:'Bijan Robinson', team:'ATL', pos:'RB', num:7,
-    status:'Healthy', opp:'SF', oppRank:{rush:11, rec:20},
-    news:'Full practice participant, no designation — workload has climbed in three of his last four games.',
-    log:[ {wk:2,opp:'CAR',rushYd:72,rec:3,recYd:9}, {wk:3,opp:'GB',rushYd:194,rec:2,recYd:19},
-          {wk:4,opp:'NO',rushYd:145,rec:1,recYd:2}, {wk:5,opp:'BAL',rushYd:86,rec:4,recYd:32},
-          {wk:6,opp:'CHI',rushYd:61,rec:2,recYd:-8} ],
-    season:{rushYd:106.8, rec:3.3, recYd:24.0},
-    props:[
-      {key:'rushYd', label:'Rushing Yards', unit:'yds', line:77.5},
-      {key:'rec', label:'Receptions', unit:'rec', line:3.5, estimated:true},
-    ]
-  },
-  {
-    id:'dhenry', name:'Derrick Henry', team:'BAL', pos:'RB', num:22,
-    status:'Healthy', opp:'CIN', oppRank:{rush:22, rec:28},
-    news:'No injury designation despite a scoreless Week 6 — that game’s struggles tracked with Lamar Jackson’s ankle, not Henry.',
-    log:[ {wk:2,opp:'NO',rushYd:68,rec:3,recYd:19}, {wk:3,opp:'DAL',rushYd:89,rec:1,recYd:0},
-          {wk:4,opp:'TEN',rushYd:73,rec:2,recYd:6}, {wk:5,opp:'ATL',rushYd:102,rec:1,recYd:18},
-          {wk:6,opp:'CLE',rushYd:58,rec:1,recYd:2} ],
-    season:{rushYd:89.0, rec:1.5, recYd:10.7},
-    props:[
-      {key:'rushYd', label:'Rushing Yards', unit:'yds', line:80.5},
-      {key:'rec', label:'Receptions', unit:'rec', line:1.5, estimated:true},
-    ]
-  },
-  {
-    id:'sbarkley', name:'Saquon Barkley', team:'PHI', pos:'RB', num:26,
-    status:'Questionable', opp:'DAL', oppRank:{rush:32, rec:22},
-    news:'Week-to-week with a hamstring strain since Week 5, hasn’t practiced since — extra rest before the Monday-night trip to Dallas could get him back.',
-    log:[ {wk:1,opp:'WAS',rushYd:83,rec:1,recYd:-3}, {wk:2,opp:'TEN',rushYd:9,rec:1,recYd:11},
-          {wk:3,opp:'CHI',rushYd:82,rec:1,recYd:-2}, {wk:4,opp:'LAR',rushYd:8,rec:1,recYd:2} ],
-    season:{rushYd:45.5, rec:1.0, recYd:2.0},
-    props:[
-      {key:'rushYd', label:'Rushing Yards', unit:'yds', line:58.5, estimated:true},
-      {key:'rec', label:'Receptions', unit:'rec', line:1.5, estimated:true},
-    ]
-  },
-  {
-    id:'jjefferson', name:'Justin Jefferson', team:'MIN', pos:'WR', num:18,
-    status:'Probable', opp:'IND', oppRank:{rec:21},
-    news:'Played through a Week 4 ankle sprain scare and returned productive in Week 5; no new designation yet ahead of Week 7.',
-    log:[ {wk:1,opp:'GB',rec:8,recYd:92,recTd:2}, {wk:2,opp:'CHI',rec:3,recYd:55,recTd:0},
-          {wk:3,opp:'TB',rec:2,recYd:32,recTd:0}, {wk:5,opp:'NO',rec:6,recYd:79,recTd:1} ],
-    season:{rec:4.75, recYd:64.5, recTd:0.75},
-    props:[
-      {key:'recYd', label:'Receiving Yards', unit:'yds', line:77.5},
-      {key:'rec', label:'Receptions', unit:'rec', line:5.5, estimated:true},
-      {key:'recTd', label:'Receiving TDs', unit:'td', line:0.5, estimated:true},
-    ]
-  },
-  {
-    id:'jchase', name:"Ja'Marr Chase", team:'CIN', pos:'WR', num:1,
-    status:'Healthy', opp:'BAL', oppRank:{rec:24},
-    news:'Cleared the concussion protocol before Week 5 and played every snap; no issues since.',
-    log:[ {wk:1,opp:'TB',rec:2,recYd:12,recTd:0}, {wk:2,opp:'HOU',rec:7,recYd:75,recTd:2},
-          {wk:3,opp:'PIT',rec:9,recYd:98,recTd:1}, {wk:4,opp:'JAX',rec:3,recYd:27,recTd:0},
-          {wk:5,opp:'MIA',rec:6,recYd:77,recTd:1} ],
-    season:{rec:5.4, recYd:57.8, recTd:0.8},
-    props:[
-      {key:'recYd', label:'Receiving Yards', unit:'yds', line:78.5},
-      {key:'rec', label:'Receptions', unit:'rec', line:6.5},
-      {key:'recTd', label:'Receiving TDs', unit:'td', line:0.5},
-    ]
-  },
-  {
-    id:'clamb', name:'CeeDee Lamb', team:'DAL', pos:'WR', num:88,
-    status:'Probable', opp:'PHI', oppRank:{rec:27},
-    news:'Playing through a quad contusion since Week 5 — not on the injury report, logged a full workload in Week 6.',
-    log:[ {wk:2,opp:'WAS',rec:8,recYd:153,recTd:2}, {wk:3,opp:'BAL',rec:7,recYd:112,recTd:0},
-          {wk:4,opp:'HOU',rec:17,recYd:189,recTd:1}, {wk:5,opp:'TB',rec:2,recYd:9,recTd:0},
-          {wk:6,opp:'GB',rec:9,recYd:70,recTd:0} ],
-    season:{rec:8.0, recYd:96.2, recTd:0.67},
-    props:[
-      {key:'recYd', label:'Receiving Yards', unit:'yds', line:84.5},
-      {key:'rec', label:'Receptions', unit:'rec', line:7.5, estimated:true},
-    ]
-  },
-  {
-    id:'astbrown', name:'Amon-Ra St. Brown', team:'DET', pos:'WR', num:14,
-    status:'Healthy', opp:'GB', oppRank:{rec:15},
-    news:'No injury concerns reported all season; has led the Lions in targets in every game he’s played.',
-    log:[ {wk:1,opp:'NO',rec:10,recYd:67,recTd:2}, {wk:2,opp:'BUF',rec:9,recYd:142,recTd:2},
-          {wk:3,opp:'NYJ',rec:4,recYd:19,recTd:1}, {wk:4,opp:'CAR',rec:8,recYd:75,recTd:0},
-          {wk:5,opp:'ARI',rec:6,recYd:69,recTd:0} ],
-    season:{rec:7.4, recYd:74.4, recTd:1.0},
-    props:[
-      {key:'recYd', label:'Receiving Yards', unit:'yds', line:81.5},
-      {key:'rec', label:'Receptions', unit:'rec', line:6.5, estimated:true},
-      {key:'recTd', label:'Receiving TDs', unit:'td', line:0.5, estimated:true},
-    ]
-  },
-  {
-    id:'tkelce', name:'Travis Kelce', team:'KC', pos:'TE', num:87,
-    status:'Questionable', opp:'SEA', oppRank:{rec:20},
-    news:'Playing through a mild right ankle sprain from Week 6 vs. the Chargers; no formal designation issued yet.',
-    log:[ {wk:1,opp:'DEN',rec:3,recYd:71,recTd:0}, {wk:2,opp:'IND',rec:9,recYd:101,recTd:1},
-          {wk:3,opp:'MIA',rec:2,recYd:59,recTd:1}, {wk:4,opp:'LV',rec:2,recYd:15,recTd:0},
-          {wk:5,opp:'LAC',rec:4,recYd:53,recTd:0} ],
-    season:{rec:4.0, recYd:59.8, recTd:0.4},
-    props:[
-      {key:'recYd', label:'Receiving Yards', unit:'yds', line:48.5, estimated:true},
-      {key:'rec', label:'Receptions', unit:'rec', line:4.5, estimated:true},
-    ]
-  },
-  {
-    id:'slaporta', name:'Sam LaPorta', team:'DET', pos:'TE', num:87,
-    status:'Healthy', opp:'GB', oppRank:{rec:8},
-    news:'No current injury listing — an August camp hip issue resolved before the season opener.',
-    log:[ {wk:1,opp:'NO',rec:5,recYd:48,recTd:0}, {wk:2,opp:'BUF',rec:6,recYd:52,recTd:1},
-          {wk:3,opp:'NYJ',rec:3,recYd:44,recTd:0}, {wk:4,opp:'CAR',rec:8,recYd:84,recTd:1},
-          {wk:5,opp:'ARI',rec:5,recYd:88,recTd:1} ],
-    season:{rec:5.4, recYd:63.2, recTd:0.6},
-    props:[
-      {key:'recYd', label:'Receiving Yards', unit:'yds', line:44.5, estimated:true},
-      {key:'rec', label:'Receptions', unit:'rec', line:4.0, estimated:true},
-    ]
-  },
-
-  // -------------------------------------------------------------------------
-  // League-wide "lite tier" — every other team's starting QB plus top skill
-  // players, season-average level (no game-by-game log on file). Props are
-  // auto-built from the season pace itself via autoProps(), always flagged
-  // as estimates since there's no per-player market line sourced at this scale.
-  // -------------------------------------------------------------------------
-  { id:'jcook', name:'James Cook', team:'BUF', pos:'RB', num:4, status:'Healthy', bye:true, opp:'BYE',
-    news:'Buffalo is on its Week 7 bye. Team-leading back this season.', season:{rushYd:104.5}, props:[] },
-  { id:'kcoleman', name:'Keon Coleman', team:'BUF', pos:'WR', num:0, status:'Healthy', bye:true, opp:'BYE',
-    news:'Buffalo is on its Week 7 bye.', season:{rec:3.0, recYd:44.8}, props:[] },
-  { id:'kshakir', name:'Khalil Shakir', team:'BUF', pos:'WR', num:10, status:'Healthy', bye:true, opp:'BYE',
-    news:'Buffalo is on its Week 7 bye.', season:{rec:3.0, recYd:42.7}, props:[] },
-
-  { id:'dmaye', name:'Drake Maye', team:'NE', pos:'QB', num:10, status:'Healthy', opp:'CHI', oppRank:{pass:14},
-    news:'Thursday-nighter at Chicago after throwing 3 TD, 0 INT in Week 6 vs. the Jets.',
-    season:{passYd:244, passTd:1.8}, props:autoProps({passYd:244, passTd:1.8}) },
-  { id:'rstevenson', name:'Rhamondre Stevenson', team:'NE', pos:'RB', num:38, status:'Healthy', opp:'CHI', oppRank:{rush:8},
-    news:'Timeshare lead back in a run-heavy Patriots offense.', season:{rushYd:43.8, rec:2.0, recYd:18.5}, props:autoProps({rushYd:43.8, recYd:18.5}) },
-  { id:'thenderson', name:'TreVeyon Henderson', team:'NE', pos:'RB', num:32, status:'Healthy', opp:'CHI', oppRank:{rush:8},
-    news:'Complementary back behind Stevenson, healthy.', season:{rushYd:32.3, recYd:5.2}, props:autoProps({rushYd:32.3}) },
-  { id:'hhenry', name:'Hunter Henry', team:'NE', pos:'TE', num:85, status:'Healthy', opp:'CHI', oppRank:{rec:14},
-    news:'Healthy, steady red-zone target for Drake Maye.', season:{rec:3.17, recYd:37.5, recTd:0.33}, props:autoProps({rec:3.17, recYd:37.5}) },
-  { id:'rdoubs', name:'Romeo Doubs', team:'NE', pos:'WR', num:87, status:'Healthy', opp:'CHI', oppRank:{rec:14},
-    news:'Signed in free agency after leaving Green Bay; leads the Patriots in receiving.', season:{rec:2.17, recYd:36.5}, props:autoProps({recYd:36.5}) },
-
-  { id:'gwilson', name:'Garrett Wilson', team:'NYJ', pos:'WR', num:17, status:'Healthy', opp:'MIA', oppRank:{rec:15},
-    news:'Cleared a Week 3 concussion evaluation, fully active since.', season:{rec:6.0, recYd:65.8}, props:autoProps({rec:6.0, recYd:65.8}) },
-  { id:'mtaylor2', name:'Mason Taylor', team:'NYJ', pos:'TE', num:0, status:'Healthy', opp:'MIA', oppRank:{rec:15},
-    news:'Rookie tight end seeing a steady target share.', season:{rec:1.5, recYd:9.17}, props:autoProps({rec:1.5, recYd:9.17}) },
-  { id:'bhall', name:'Breece Hall', team:'NYJ', pos:'RB', num:20, status:'Questionable', opp:'MIA', oppRank:{rush:16},
-    news:'Right quad injury since Week 3 — has not practiced, week-to-week.', season:{rushYd:27.2, rec:1.67, recYd:17.0}, props:autoProps({rushYd:27.2, recYd:17.0}) },
-
-  { id:'jburrow', name:'Joe Burrow', team:'CIN', pos:'QB', num:9, status:'Healthy', opp:'BAL', oppRank:{pass:13},
-    news:'Healthy, no Week 7 concerns reported — off Cincinnati’s Week 6 bye.',
-    season:{passYd:272, passTd:2.2}, props:autoProps({passYd:272, passTd:2.2}) },
-  { id:'thiggins', name:'Tee Higgins', team:'CIN', pos:'WR', num:5, status:'Probable', opp:'BAL', oppRank:{rec:13},
-    news:'Managed a groin/neck issue in practice, trending to play.', season:{rec:5.4, recYd:84.6, recTd:0.4}, props:autoProps({rec:5.4, recYd:84.6}) },
-  { id:'cbrown', name:'Chase Brown', team:'CIN', pos:'RB', num:30, status:'Healthy', opp:'BAL', oppRank:{rush:11},
-    news:'Bengals lead back, no injury designation.', season:{rushYd:49.2, rec:4.8, recYd:24.8}, props:autoProps({rushYd:49.2, recYd:24.8}) },
-
-  { id:'zflowers', name:'Zay Flowers', team:'BAL', pos:'WR', num:4, status:'Healthy', opp:'CIN', oppRank:{rec:18},
-    news:'Managing a minor toe issue, not on the injury report.', season:{rec:5.33, recYd:78.5, recTd:0.33}, props:autoProps({rec:5.33, recYd:78.5}) },
-
-  { id:'dwatson', name:'Deshaun Watson', team:'CLE', pos:'QB', num:4, status:'Healthy', opp:'TEN', oppRank:{pass:17},
-    news:'Named Week 1 starter over Sanders/Gabriel and has held the job all season.',
-    season:{passYd:168.3, passTd:1.17}, props:autoProps({passYd:168.3, passTd:1.17}) },
-  { id:'jjeudy', name:'Jerry Jeudy', team:'CLE', pos:'WR', num:3, status:'Healthy', opp:'TEN', oppRank:{rec:17},
-    news:'Usage down with rookie receivers emerging, but healthy.', season:{rec:2.0, recYd:25.0}, props:autoProps({recYd:25.0}) },
-  { id:'qjudkins', name:'Quinshon Judkins', team:'CLE', pos:'RB', num:33, status:'Questionable', opp:'TEN', oppRank:{rush:21},
-    news:'Returning from an ankle injury that cost him Week 6, limited practice participant.', season:{rushYd:36.8}, props:autoProps({rushYd:36.8}) },
-
-  { id:'arodgers', name:'Aaron Rodgers', team:'PIT', pos:'QB', num:8, status:'Healthy', opp:'NO', oppRank:{pass:25},
-    news:'Healthy, no Week 7 concerns — Steelers play in Paris, France this week.',
-    season:{passYd:247.8, passTd:2.0}, props:autoProps({passYd:247.8, passTd:2.0}) },
-  { id:'dmetcalf', name:'DK Metcalf', team:'PIT', pos:'WR', num:4, status:'Healthy', opp:'NO', oppRank:{rec:25},
-    news:'Healthy, Steelers’ primary outside threat.', season:{rec:5.0, recYd:53.0, recTd:0.17}, props:autoProps({rec:5.0, recYd:53.0}) },
-  { id:'jwarren', name:'Jaylen Warren', team:'PIT', pos:'RB', num:30, status:'Healthy', opp:'NO', oppRank:{rush:16},
-    news:'Primary back, healthy, involved in both run and pass game.', season:{rushYd:76.7, rec:3.5, recYd:43.0}, props:autoProps({rushYd:76.7, recYd:43.0}) },
-  { id:'pfreiermuth', name:'Pat Freiermuth', team:'PIT', pos:'TE', num:88, status:'Healthy', opp:'NO', oppRank:{rec:25},
-    news:'Healthy, red-zone favorite with 4 TDs already this season.', season:{rec:3.5, recYd:30.0, recTd:0.67}, props:autoProps({rec:3.5, recYd:30.0}) },
-
-  { id:'cstroud', name:'C.J. Stroud', team:'HOU', pos:'QB', num:7, status:'Healthy', opp:'NYG', oppRank:{pass:5},
-    news:'Healthy, Texans have won 2 straight.', season:{passYd:285.7, passTd:1.5}, props:autoProps({passYd:285.7, passTd:1.5}) },
-
-  { id:'jtaylor', name:'Jonathan Taylor', team:'IND', pos:'RB', num:28, status:'Healthy', opp:'MIN', oppRank:{rush:5},
-    news:'No reported injury, workhorse back for Indianapolis.', season:{rushYd:82.0, rec:1.0, recYd:27.2}, props:autoProps({rushYd:82.0, recYd:27.2}) },
-  { id:'jdowns', name:'Josh Downs', team:'IND', pos:'WR', num:1, status:'Healthy', opp:'MIN', oppRank:{rec:3},
-    news:'Healthy slot receiver for the Colts.', season:{rec:4.0, recYd:48.2}, props:autoProps({rec:4.0, recYd:48.2}) },
-  { id:'twarren', name:'Tyler Warren', team:'IND', pos:'TE', num:84, status:'Healthy', opp:'MIN', oppRank:{rec:3},
-    news:'Rookie tight end building a role in the red zone.', season:{rec:3.0, recYd:14.8, recTd:0.33}, props:autoProps({rec:3.0, recYd:14.8}) },
-  { id:'djones2', name:'Daniel Jones', team:'IND', pos:'QB', num:17, status:'Healthy', opp:'MIN', oppRank:{pass:3},
-    news:'Confirmed Week 7 starter despite a recent statistical decline; faces the NFL’s best scoring defense.',
-    season:{passYd:215.0, passTd:0.67}, props:autoProps({passYd:215.0, passTd:0.67}) },
-
-  { id:'btuten', name:'Bhayshul Tuten', team:'JAX', pos:'RB', num:33, status:'Healthy', bye:true, opp:'BYE',
-    news:'Jacksonville is on its Week 7 bye.', season:{rushYd:64.7, rec:3.33, recYd:21.0}, props:[] },
-  { id:'pwashington', name:'Parker Washington', team:'JAX', pos:'WR', num:10, status:'Healthy', bye:true, opp:'BYE',
-    news:'Jacksonville is on its Week 7 bye.', season:{rec:3.83, recYd:58.7}, props:[] },
-  { id:'bstrange', name:'Brenton Strange', team:'JAX', pos:'TE', num:85, status:'Healthy', bye:true, opp:'BYE',
-    news:'Jacksonville is on its Week 7 bye.', season:{rec:4.2, recYd:47.0}, props:[] },
-  { id:'tlawrence', name:'Trevor Lawrence', team:'JAX', pos:'QB', num:16, status:'Healthy', bye:true, opp:'BYE',
-    news:'Jacksonville is on its Week 7 bye after a Week 6 loss to Houston.', season:{passYd:246.7, passTd:2.33}, props:[] },
-
-  { id:'cward', name:'Cam Ward', team:'TEN', pos:'QB', num:1, status:'Healthy', opp:'CLE', oppRank:{pass:8},
-    news:'Confirmed starter; Titans snapped a 5-game skid in Week 6.', season:{passYd:166.3, passTd:0.67}, props:autoProps({passYd:166.3, passTd:0.67}) },
-  { id:'tpollard', name:'Tony Pollard', team:'TEN', pos:'RB', num:20, status:'Probable', opp:'CLE', oppRank:{rush:17},
-    news:'Playing through a foot issue, hasn’t missed a game.', season:{rushYd:54.6, rec:1.6, recYd:4.8}, props:autoProps({rushYd:54.6}) },
-
-  { id:'bnix', name:'Bo Nix', team:'DEN', pos:'QB', num:10, status:'Healthy', opp:'ARI', oppRank:{pass:22},
-    news:'Healthy, Broncos have won 2 straight.', season:{passYd:174.8, passTd:1.0},
-    ngs:{airYards:4.6, aggressiveness:2.4}, props:autoProps({passYd:174.8, passTd:1.0}) },
-  { id:'rjharvey', name:'RJ Harvey', team:'DEN', pos:'RB', num:1, status:'Healthy', opp:'ARI', oppRank:{rush:16},
-    news:'Lead back in a committee with Dobbins/Badie.', season:{rushYd:13.5, rec:3.83, recYd:27.2}, props:autoProps({rushYd:13.5, recYd:27.2}) },
-
-  { id:'xworthy', name:'Xavier Worthy', team:'KC', pos:'WR', num:1, status:'Healthy', opp:'SEA', oppRank:{rec:1},
-    news:'Still working back from a shoulder dislocation but leads the Chiefs in targets.', season:{rec:3.5, recYd:34.3, recTd:0.17}, props:autoProps({rec:3.5, recYd:34.3}) },
-
-  { id:'jherbert', name:'Justin Herbert', team:'LAC', pos:'QB', num:10, status:'Healthy', bye:true, opp:'BYE',
-    news:'Chargers are on their Week 7 bye after an 0-6 start.', season:{passYd:190.2, passTd:0.83}, props:[] },
-  { id:'qjohnston', name:'Quentin Johnston', team:'LAC', pos:'WR', num:1, status:'Healthy', bye:true, opp:'BYE',
-    news:'Chargers are on their Week 7 bye.', season:{rec:1.75, recYd:27.0}, props:[] },
-  { id:'ohampton', name:'Omarion Hampton', team:'LAC', pos:'RB', num:28, status:'Healthy', bye:true, opp:'BYE',
-    news:'Chargers are on their Week 7 bye.', season:{rushYd:48.2}, props:[] },
-
-  { id:'kcousins', name:'Kirk Cousins', team:'LV', pos:'QB', num:8, status:'Healthy', opp:'LAR', oppRank:{pass:2},
-    news:'Confirmed starter over rookie Fernando Mendoza.', season:{passYd:254, passTd:2.4},
-    ngs:{airYards:8.9, aggressiveness:13.5, timeToThrow:3.28}, props:autoProps({passYd:254, passTd:2.4}) },
-  { id:'ajeanty', name:'Ashton Jeanty', team:'LV', pos:'RB', num:2, status:'Healthy', opp:'LAR', oppRank:{rush:16},
-    news:'No game designation, but has cooled off the last two weeks.', season:{rushYd:52.2}, props:autoProps({rushYd:52.2}) },
-  { id:'bbowers', name:'Brock Bowers', team:'LV', pos:'TE', num:89, status:'Healthy', opp:'LAR', oppRank:{rec:2},
-    news:'Leads the Raiders in receiving yards, healthy.', season:{recYd:52.0}, props:autoProps({recYd:52.0}) },
-
-  { id:'dprescott', name:'Dak Prescott', team:'DAL', pos:'QB', num:4, status:'Probable', opp:'PHI', oppRank:{pass:26},
-    news:'Playing through a rib bruise from Week 6, expected to start.', season:{passYd:273, passTd:1.67}, props:autoProps({passYd:273, passTd:1.67}) },
-  { id:'jwilliams', name:'Javonte Williams', team:'DAL', pos:'RB', num:33, status:'Healthy', opp:'PHI', oppRank:{rush:19},
-    news:'Co-leads the Cowboys backfield, healthy.', season:{rushYd:57.75, rec:3.75, recYd:19.25}, props:autoProps({rushYd:57.75, recYd:19.25}) },
-  { id:'jferguson', name:'Jake Ferguson', team:'DAL', pos:'TE', num:87, status:'Healthy', opp:'PHI', oppRank:{rec:26},
-    news:'Healthy, red-zone weapon with 3 TDs on the season.', season:{rec:3.0, recYd:20.75, recTd:0.75}, props:autoProps({rec:3.0, recYd:20.75}) },
-
-  { id:'mnabers', name:'Malik Nabers', team:'NYG', pos:'WR', num:1, status:'Healthy', opp:'HOU', oppRank:{rec:16},
-    news:'Giants’ clear WR1.', season:{rec:6.83, recYd:82.3}, props:autoProps({rec:6.83, recYd:82.3}) },
-
-  { id:'jhurts', name:'Jalen Hurts', team:'PHI', pos:'QB', num:1, status:'Healthy', opp:'DAL', oppRank:{pass:23},
-    news:'No injury designation; Eagles have dropped 4 straight.', season:{passYd:187, passTd:1.6}, props:autoProps({passYd:187, passTd:1.6}) },
-  { id:'dsmith', name:'DeVonta Smith', team:'PHI', pos:'WR', num:6, status:'Healthy', opp:'DAL', oppRank:{rec:23},
-    news:'Elevated to WR1 role, healthy.', season:{rec:6.33, recYd:78.3, recTd:0.33}, props:autoProps({rec:6.33, recYd:78.3}) },
-  { id:'dgoedert', name:'Dallas Goedert', team:'PHI', pos:'TE', num:88, status:'Healthy', opp:'DAL', oppRank:{rec:23},
-    news:'Healthy, reliable red-zone target.', season:{rec:3.67, recYd:39.7, recTd:0.67}, props:autoProps({rec:3.67, recYd:39.7}) },
-
-  { id:'mpenix', name:'Michael Penix Jr.', team:'ATL', pos:'QB', num:9, status:'Healthy', opp:'SF', oppRank:{pass:12},
-    news:'Healthy; Falcons host an undefeated 49ers team Sunday night.', season:{passYd:239.5, passTd:1.0},
-    ngs:{airYards:8.8}, props:autoProps({passYd:239.5, passTd:1.0}) },
-  { id:'dlondon', name:'Drake London', team:'ATL', pos:'WR', num:5, status:'Healthy', opp:'SF', oppRank:{rec:12},
-    news:'Falcons’ WR1, healthy.', season:{rec:5.0, recYd:92.5}, props:autoProps({rec:5.0, recYd:92.5}) },
-
-  { id:'byoung', name:'Bryce Young', team:'CAR', pos:'QB', num:9, status:'Healthy', opp:'TB', oppRank:{pass:19},
-    news:'Healthy, Panthers have won 2 straight and lead the NFC South.', season:{passYd:317, passTd:2.3}, props:autoProps({passYd:317, passTd:2.3}) },
-  { id:'tmcmillan', name:'Tetairoa McMillan', team:'CAR', pos:'WR', num:0, status:'Healthy', opp:'TB', oppRank:{rec:19},
-    news:'Rookie WR1, no injury designation.', season:{rec:6.5, recYd:96.25, recTd:0.5}, props:autoProps({rec:6.5, recYd:96.25}) },
-  { id:'jcoker', name:'Jalen Coker', team:'CAR', pos:'WR', num:19, status:'Healthy', opp:'TB', oppRank:{rec:19},
-    news:'Cleared a Week 3 quad injury, full practice participant since.', season:{rec:6.0, recYd:79.75, recTd:0.5}, props:autoProps({rec:6.0, recYd:79.75}) },
-
-  { id:'jbrissett', name:'Jacoby Brissett', team:'ARI', pos:'QB', num:7, status:'Healthy', opp:'DEN', oppRank:{pass:10},
-    news:'Cardinals’ starter since Kyler Murray’s release.', season:{passYd:221.3, passTd:1.5}, props:autoProps({passYd:221.3, passTd:1.5}) },
-  { id:'tmcbride', name:'Trey McBride', team:'ARI', pos:'TE', num:85, status:'Healthy', opp:'DEN', oppRank:{rec:10},
-    news:'League-leading tight end target share, healthy.', season:{rec:8.17, recYd:60.2, recTd:0.5}, props:autoProps({rec:8.17, recYd:60.2}) },
-
-  { id:'mstafford', name:'Matthew Stafford', team:'LAR', pos:'QB', num:9, status:'Healthy', opp:'LV', oppRank:{pass:24},
-    news:'Healthy, Rams coming off back-to-back losses.', season:{passYd:299, passTd:1.83}, props:autoProps({passYd:299, passTd:1.83}) },
-  { id:'pnacua', name:'Puka Nacua', team:'LAR', pos:'WR', num:17, status:'Healthy', opp:'LV', oppRank:{rec:24},
-    news:'Rams’ clear WR1, healthy.', season:{rec:6.17, recYd:69.5}, props:autoProps({rec:6.17, recYd:69.5}) },
-  { id:'kwilliams', name:'Kyren Williams', team:'LAR', pos:'RB', num:23, status:'Healthy', opp:'LV', oppRank:{rush:28},
-    news:'Rams’ lead back, healthy.', season:{rushYd:65.5}, props:autoProps({rushYd:65.5}) },
-
-  { id:'bpurdy', name:'Brock Purdy', team:'SF', pos:'QB', num:13, status:'Out', opp:'ATL', oppRank:{pass:28},
-    news:'Unlikely to play through turf toe; Mac Jones has taken the bulk of practice reps but isn’t formally confirmed as the starter yet.',
-    season:{passYd:243, passTd:2.33}, props:autoProps({passYd:243, passTd:2.33}) },
-
-  { id:'sdarnold', name:'Sam Darnold', team:'SEA', pos:'QB', num:14, status:'Healthy', opp:'KC', oppRank:{pass:15},
-    news:'Team has explicitly committed to Darnold as starter despite a recent interception spike.', season:{passYd:172.2, passTd:1.17}, props:autoProps({passYd:172.2, passTd:1.17}) },
-  { id:'jsnjigba', name:'Jaxon Smith-Njigba', team:'SEA', pos:'WR', num:11, status:'Healthy', opp:'KC', oppRank:{rec:15},
-    news:'Cleared a Week 5 ankle injury, leads Seattle in receiving.', season:{rec:6.17, recYd:97.2, recTd:1.17}, props:autoProps({rec:6.17, recYd:97.2}) },
-  { id:'ckupp', name:'Cooper Kupp', team:'SEA', pos:'WR', num:10, status:'Healthy', opp:'KC', oppRank:{rec:15},
-    news:'Diminished role in Seattle’s offense but healthy.', season:{rec:2.67, recYd:29.8, recTd:0.17}, props:autoProps({rec:2.67, recYd:29.8}) },
-
-  { id:'cwilliams2', name:'Caleb Williams', team:'CHI', pos:'QB', num:18, status:'Healthy', opp:'NE', oppRank:{pass:11},
-    news:'Confirmed Week 7 starter, back from a hamstring injury that cost him Weeks 3–5.', season:{passYd:237.3, passTd:1.0}, props:autoProps({passYd:237.3, passTd:1.0}) },
-  { id:'dswift', name:'D’Andre Swift', team:'CHI', pos:'RB', num:4, status:'Healthy', opp:'NE', oppRank:{rush:9},
-    news:'Bears’ lead back, healthy.', season:{rushYd:66.3, rec:3.0, recYd:23.3}, props:autoProps({rushYd:66.3, recYd:23.3}) },
-  { id:'rodunze', name:'Rome Odunze', team:'CHI', pos:'WR', num:15, status:'Healthy', opp:'NE', oppRank:{rec:11},
-    news:'Healthy, No. 2 receiving option.', season:{rec:3.3, recYd:45.3}, props:autoProps({rec:3.3, recYd:45.3}) },
-  { id:'lburden', name:'Luther Burden III', team:'CHI', pos:'WR', num:10, status:'Healthy', opp:'NE', oppRank:{rec:11},
-    news:'Rookie receiver, healthy, leads Bears WRs in targets.', season:{rec:5.2, recYd:60.2}, props:autoProps({rec:5.2, recYd:60.2}) },
-  { id:'ckmet', name:'Cole Kmet', team:'CHI', pos:'TE', num:85, status:'Healthy', opp:'NE', oppRank:{rec:11},
-    news:'Limited receiving role this season, healthy.', season:{rec:1.2, recYd:9.8}, props:autoProps({rec:1.2, recYd:9.8}) },
-
-  { id:'jgibbs', name:'Jahmyr Gibbs', team:'DET', pos:'RB', num:26, status:'Healthy', opp:'GB', oppRank:{rush:24},
-    news:'Healthy, Lions’ lead back coming off the Week 6 bye.', season:{rushYd:100.8, rec:5.4, recYd:48.6}, props:autoProps({rushYd:100.8, recYd:48.6}) },
-  { id:'jwilliams2', name:'Jameson Williams', team:'DET', pos:'WR', num:1, status:'Healthy', opp:'GB', oppRank:{rec:5},
-    news:'Healthy, deep threat for Jared Goff.', season:{rec:3.6, recYd:55.2, recTd:0.4}, props:autoProps({rec:3.6, recYd:55.2}) },
-  { id:'jgoff', name:'Jared Goff', team:'DET', pos:'QB', num:16, status:'Healthy', opp:'GB', oppRank:{pass:5},
-    news:'No injury designation all season; hasn’t thrown an interception yet in 2026.', season:{passYd:297, passTd:2.4}, props:autoProps({passYd:297, passTd:2.4}) },
-
-  { id:'cwatson2', name:'Christian Watson', team:'GB', pos:'WR', num:9, status:'Healthy', opp:'DET', oppRank:{rec:32},
-    news:'Leads the Packers in receiving, healthy.', season:{rec:4.8, recYd:89.7, recTd:1.0}, props:autoProps({rec:4.8, recYd:89.7}) },
-  { id:'mgolden', name:'Matthew Golden', team:'GB', pos:'WR', num:0, status:'Healthy', opp:'DET', oppRank:{rec:32},
-    news:'Rookie receiver, healthy, co-leads Packers WRs.', season:{rec:5.0, recYd:83.5}, props:autoProps({rec:5.0, recYd:83.5}) },
-  { id:'tkraft', name:'Tucker Kraft', team:'GB', pos:'TE', num:85, status:'Healthy', opp:'DET', oppRank:{rec:32},
-    news:'Healthy, steady target in the Green Bay offense.', season:{rec:4.2, recYd:41.5}, props:autoProps({rec:4.2, recYd:41.5}) },
-
-  { id:'ajones', name:'Aaron Jones Sr.', team:'MIN', pos:'RB', num:33, status:'Questionable', opp:'IND', oppRank:{rush:21},
-    news:'Managing a left knee injury from Week 5 but has finished every game since.', season:{rushYd:82.0, rec:2.4, recYd:14.4}, props:autoProps({rushYd:82.0, recYd:14.4}) },
-  { id:'thockenson', name:'T.J. Hockenson', team:'MIN', pos:'TE', num:87, status:'Questionable', opp:'IND', oppRank:{rec:21},
-    news:'Listed questionable on the depth chart; recent production suggests he’s trending to play.', season:{rec:4.6, recYd:40.4, recTd:0.2}, props:autoProps({rec:4.6, recYd:40.4}) },
-  { id:'jaddison', name:'Jordan Addison', team:'MIN', pos:'WR', num:3, status:'Questionable', opp:'IND', oppRank:{rec:21},
-    news:'Listed questionable on the depth chart.', season:{rec:2.2, recYd:40.8, recTd:0.2}, props:autoProps({rec:2.2, recYd:40.8}) },
-  { id:'kmurray', name:'Kyler Murray', team:'MIN', pos:'QB', num:1, status:'Healthy', opp:'IND', oppRank:{pass:21},
-    news:'Starting QB for an undefeated Vikings team, coming off the bye healthy.', season:{passYd:165.5, passTd:0.5}, props:autoProps({passYd:165.5, passTd:0.5}) },
-];
-
-// ---------------------------------------------------------------------------
-// Team profiles — record, streak, division/conference, defensive pressure
-// stats, and each team's current Week 7 opponent. Researched the same way
-// as the player data above (ESPN/NFL.com/TeamRankings/NGS team pages).
-// ---------------------------------------------------------------------------
-const TEAMS = [
-  // AFC East
-  { abbr:'BUF', name:'Buffalo Bills', conf:'AFC', div:'East', record:'5-1', homeRecord:'2-1', awayRecord:'3-0', placeText:'1st in AFC East', streak:'Won 2 straight', bye:true, nextOpp:null, homeGame:null,
-    defense:{sacks:10, blitzRate:null, pressureRate:null, passRank:31, passYdsAllowed:285.8, rushRank:13, rushYdsAllowed:101} },
-  { abbr:'MIA', name:'Miami Dolphins', conf:'AFC', div:'East', record:'0-5', homeRecord:'0-2', awayRecord:'0-3', placeText:'4th in AFC East', streak:'Lost 5 straight', nextOpp:'NYJ', homeGame:false,
-    defense:{sacks:4, blitzRate:null, pressureRate:null, passRank:15, passYdsAllowed:219.2, rushRank:16, rushYdsAllowed:110.6} },
-  { abbr:'NE', name:'New England Patriots', conf:'AFC', div:'East', record:'4-2', homeRecord:'3-0', awayRecord:'1-2', placeText:'2nd in AFC East', streak:'Won 3 straight', nextOpp:'CHI', homeGame:false,
-    defense:{sacks:14, blitzRate:null, pressureRate:null, passRank:11, passYdsAllowed:209, rushRank:9, rushYdsAllowed:91.8} },
-  { abbr:'NYJ', name:'New York Jets', conf:'AFC', div:'East', record:'2-4', homeRecord:'1-1', awayRecord:'1-3', placeText:'3rd in AFC East', streak:'Lost 1 straight', nextOpp:'MIA', homeGame:true,
-    defense:{sacks:17, blitzRate:null, pressureRate:null, passRank:4, passYdsAllowed:185, rushRank:23, rushYdsAllowed:123} },
-  // AFC North
-  { abbr:'BAL', name:'Baltimore Ravens', conf:'AFC', div:'North', record:'4-2', homeRecord:'1-1', awayRecord:'3-1', placeText:'1st in AFC North (tie)', streak:'Lost 1 straight', nextOpp:'CIN', homeGame:true,
-    defense:{sacks:10, blitzRate:31.4, pressureRate:43.8, passRank:13, passYdsAllowed:210.3, rushRank:11, rushYdsAllowed:100.5} },
-  { abbr:'CIN', name:'Cincinnati Bengals', conf:'AFC', div:'North', record:'3-2', homeRecord:'1-1', awayRecord:'2-1', placeText:'4th in AFC North', streak:'Won 1 straight', nextOpp:'BAL', homeGame:false,
-    defense:{sacks:17, blitzRate:16.1, pressureRate:40.2, passRank:18, passYdsAllowed:221.2, rushRank:23, rushYdsAllowed:123} },
-  { abbr:'CLE', name:'Cleveland Browns', conf:'AFC', div:'North', record:'4-2', homeRecord:'3-0', awayRecord:'1-2', placeText:'1st in AFC North (tiebreak)', streak:'Won 1 straight', nextOpp:'TEN', homeGame:false,
-    defense:{sacks:19, blitzRate:25.3, pressureRate:null, passRank:8, passYdsAllowed:205.2, rushRank:17, rushYdsAllowed:112.3} },
-  { abbr:'PIT', name:'Pittsburgh Steelers', conf:'AFC', div:'North', record:'4-2', homeRecord:'3-0', awayRecord:'1-2', placeText:'1st in AFC North (tie)', streak:'Won 2 straight', nextOpp:'NO', homeGame:'neutral',
-    defense:{sacks:16, blitzRate:26.9, pressureRate:null, passRank:null, passYdsAllowed:222.0, rushRank:null, rushYdsAllowed:103.2} },
-  // AFC South
-  { abbr:'HOU', name:'Houston Texans', conf:'AFC', div:'South', record:'2-4', homeRecord:'0-3', awayRecord:'2-1', placeText:'2nd in AFC South', streak:'Won 2 straight', nextOpp:'NYG', homeGame:true,
-    defense:{sacks:18, blitzRate:null, pressureRate:38.9, passRank:null, passYdsAllowed:null, rushRank:3, rushYdsAllowed:83} },
-  { abbr:'IND', name:'Indianapolis Colts', conf:'AFC', div:'South', record:'2-4', homeRecord:'1-2', awayRecord:'1-2', placeText:'3rd in AFC South', streak:'Lost 1 straight', nextOpp:'MIN', homeGame:false,
-    defense:{sacks:15, blitzRate:null, pressureRate:29.4, passRank:21, passYdsAllowed:228.7, rushRank:21, rushYdsAllowed:122.5} },
-  { abbr:'JAX', name:'Jacksonville Jaguars', conf:'AFC', div:'South', record:'4-2', homeRecord:'3-1', awayRecord:'1-1', placeText:'1st in AFC South', streak:'Lost 1 straight', bye:true, nextOpp:null, homeGame:null,
-    defense:{sacks:11, blitzRate:27, pressureRate:39, passRank:null, passYdsAllowed:null, rushRank:1, rushYdsAllowed:72.2} },
-  { abbr:'TEN', name:'Tennessee Titans', conf:'AFC', div:'South', record:'1-5', homeRecord:'0-3', awayRecord:'1-2', placeText:'4th in AFC South', streak:'Won 1 straight', nextOpp:'CLE', homeGame:true,
-    defense:{sacks:10, blitzRate:22, pressureRate:null, passRank:17, passYdsAllowed:220.5, rushRank:21, rushYdsAllowed:122.5} },
-  // AFC West
-  { abbr:'DEN', name:'Denver Broncos', conf:'AFC', div:'West', record:'4-2', homeRecord:'3-0', awayRecord:'1-2', placeText:'2nd in AFC West', streak:'Won 2 straight', nextOpp:'ARI', homeGame:true,
-    defense:{sacks:18, blitzRate:null, pressureRate:null, passRank:10, passYdsAllowed:208.5, rushRank:31, rushYdsAllowed:139.8} },
-  { abbr:'KC', name:'Kansas City Chiefs', conf:'AFC', div:'West', record:'5-0', homeRecord:'3-0', awayRecord:'2-0', placeText:'1st in AFC West', streak:'Won 5 straight', nextOpp:'SEA', homeGame:false,
-    defense:{sacks:4, blitzRate:null, pressureRate:null, passRank:15, passYdsAllowed:217.2, rushRank:6, rushYdsAllowed:88.8} },
-  { abbr:'LAC', name:'Los Angeles Chargers', conf:'AFC', div:'West', record:'0-6', homeRecord:'0-3', awayRecord:'0-3', placeText:'4th in AFC West', streak:'Lost 6 straight', bye:true, nextOpp:null, homeGame:null,
-    defense:{sacks:11, blitzRate:null, pressureRate:null, passRank:9, passYdsAllowed:206.2, rushRank:21, rushYdsAllowed:118.6} },
-  { abbr:'LV', name:'Las Vegas Raiders', conf:'AFC', div:'West', record:'3-3', homeRecord:'1-2', awayRecord:'2-1', placeText:'3rd in AFC West', streak:'Lost 3 straight', nextOpp:'LAR', homeGame:true,
-    defense:{sacks:10, blitzRate:null, pressureRate:null, passRank:24, passYdsAllowed:237.3, rushRank:28, rushYdsAllowed:134.3} },
-  // NFC East
-  { abbr:'DAL', name:'Dallas Cowboys', conf:'NFC', div:'East', record:'2-4', homeRecord:null, awayRecord:null, placeText:'3rd in NFC East (tie)', streak:'Lost 2 straight', nextOpp:'PHI', homeGame:false,
-    defense:{sacks:8, blitzRate:null, pressureRate:null, passRank:23, passYdsAllowed:232.7, rushRank:32, rushYdsAllowed:149.8} },
-  { abbr:'NYG', name:'New York Giants', conf:'NFC', div:'East', record:'3-2-1', homeRecord:'3-1', awayRecord:'0-1-1', placeText:'1st in NFC East', streak:'1-1 last two', nextOpp:'HOU', homeGame:false,
-    defense:{sacks:18, blitzRate:null, pressureRate:null, passRank:5, passYdsAllowed:190.2, rushRank:29, rushYdsAllowed:135.5} },
-  { abbr:'PHI', name:'Philadelphia Eagles', conf:'NFC', div:'East', record:'2-4', homeRecord:null, awayRecord:null, placeText:'3rd in NFC East (tie)', streak:'Lost 4 straight', nextOpp:'DAL', homeGame:true,
-    defense:{sacks:null, blitzRate:null, pressureRate:null, passRank:26, passYdsAllowed:244.5, rushRank:19, rushYdsAllowed:119.3} },
-  { abbr:'WAS', name:'Washington Commanders', conf:'NFC', div:'East', record:'1-4-1', homeRecord:'1-1-1', awayRecord:'0-3', placeText:'4th in NFC East', streak:'Winless in 2', bye:true, nextOpp:null, homeGame:null,
-    defense:{sacks:10, blitzRate:null, pressureRate:null, passRank:29, passYdsAllowed:254, rushRank:11, rushYdsAllowed:100.5} },
-  // NFC North
-  { abbr:'CHI', name:'Chicago Bears', conf:'NFC', div:'North', record:'4-2', homeRecord:null, awayRecord:null, placeText:'2nd in NFC North (tie)', streak:'Won 1 straight', nextOpp:'NE', homeGame:true,
-    defense:{sacks:17, blitzRate:null, pressureRate:null, passRank:14, passYdsAllowed:211.8, rushRank:8, rushYdsAllowed:90.5} },
-  { abbr:'DET', name:'Detroit Lions', conf:'NFC', div:'North', record:'3-2', homeRecord:null, awayRecord:null, placeText:'4th in NFC North (tie)', streak:'Won 1 straight', nextOpp:'GB', homeGame:true,
-    defense:{sacks:20, blitzRate:null, pressureRate:null, passRank:32, passYdsAllowed:297.4, rushRank:15, rushYdsAllowed:107} },
-  { abbr:'GB', name:'Green Bay Packers', conf:'NFC', div:'North', record:'4-2', homeRecord:'2-1', awayRecord:'2-1', placeText:'2nd in NFC North (tie)', streak:'Won 2 straight', nextOpp:'DET', homeGame:false,
-    defense:{sacks:14, blitzRate:null, pressureRate:null, passRank:5, passYdsAllowed:181.0, rushRank:24, rushYdsAllowed:127.6} },
-  { abbr:'MIN', name:'Minnesota Vikings', conf:'NFC', div:'North', record:'5-0', homeRecord:'2-0', awayRecord:'3-0', placeText:'1st in NFC North', streak:'Won 5 straight', nextOpp:'IND', homeGame:true,
-    defense:{sacks:17, blitzRate:null, pressureRate:null, passRank:3, passYdsAllowed:173.2, rushRank:5, rushYdsAllowed:86.6} },
-  // NFC South
-  { abbr:'ATL', name:'Atlanta Falcons', conf:'NFC', div:'South', record:'2-4', homeRecord:'0-3', awayRecord:'2-1', placeText:'2nd in NFC South', streak:'Lost 2 straight', nextOpp:'SF', homeGame:true,
-    defense:{sacks:16, blitzRate:null, pressureRate:22.9, passRank:28, passYdsAllowed:252, rushRank:4, rushYdsAllowed:83.2} },
-  { abbr:'CAR', name:'Carolina Panthers', conf:'NFC', div:'South', record:'3-2', homeRecord:'1-1', awayRecord:'2-1', placeText:'1st in NFC South', streak:'Won 2 straight', nextOpp:'TB', homeGame:true,
-    defense:{sacks:9, blitzRate:36.6, pressureRate:22.1, passRank:19, passYdsAllowed:222, rushRank:27, rushYdsAllowed:132.2} },
-  { abbr:'NO', name:'New Orleans Saints', conf:'NFC', div:'South', record:'2-4', homeRecord:'0-3', awayRecord:'2-1', placeText:'3rd in NFC South', streak:'Won 1 straight', nextOpp:'PIT', homeGame:'neutral',
-    defense:{sacks:10, blitzRate:35.1, pressureRate:16.2, passRank:25, passYdsAllowed:239.7, rushRank:null, rushYdsAllowed:null} },
-  { abbr:'TB', name:'Tampa Bay Buccaneers', conf:'NFC', div:'South', record:'1-5', homeRecord:'0-4', awayRecord:'1-1', placeText:'4th in NFC South', streak:'Lost 1 straight', nextOpp:'CAR', homeGame:false,
-    defense:{sacks:11, blitzRate:41.3, pressureRate:17.7, passRank:19, passYdsAllowed:226.6, rushRank:2, rushYdsAllowed:72.8} },
-  // NFC West
-  { abbr:'ARI', name:'Arizona Cardinals', conf:'NFC', div:'West', record:'2-4', homeRecord:'0-2', awayRecord:'2-2', placeText:'3rd in NFC West', streak:'Won 1 straight', nextOpp:'DEN', homeGame:false,
-    defense:{sacks:12, blitzRate:null, pressureRate:null, passRank:22, passYdsAllowed:229.7, rushRank:null, rushYdsAllowed:null} },
-  { abbr:'LAR', name:'Los Angeles Rams', conf:'NFC', div:'West', record:'2-4', homeRecord:'1-3', awayRecord:'1-1', placeText:'4th in NFC West', streak:'Lost 2 straight', nextOpp:'LV', homeGame:false,
-    defense:{sacks:10, blitzRate:null, pressureRate:null, passRank:2, passYdsAllowed:167, rushRank:null, rushYdsAllowed:null} },
-  { abbr:'SF', name:'San Francisco 49ers', conf:'NFC', div:'West', record:'6-0', homeRecord:'4-0', awayRecord:'2-0', placeText:'1st in NFC West', streak:'Won 6 straight', nextOpp:'ATL', homeGame:false,
-    defense:{sacks:11, blitzRate:null, pressureRate:null, passRank:12, passYdsAllowed:209.8, rushRank:null, rushYdsAllowed:null} },
-  { abbr:'SEA', name:'Seattle Seahawks', conf:'NFC', div:'West', record:'3-3', homeRecord:'2-1', awayRecord:'1-2', placeText:'2nd in NFC West', streak:'Lost 1 straight', nextOpp:'KC', homeGame:true,
-    defense:{sacks:16, blitzRate:null, pressureRate:null, passRank:1, passYdsAllowed:141.3, rushRank:null, rushYdsAllowed:null} },
-];
 
 function mean(arr){ return arr.reduce((a,b)=>a+b,0)/arr.length; }
 function stdev(arr){
@@ -1432,11 +971,19 @@ function weekGames(){
   return games;
 }
 
+// A 0-vs-1-catch swing produces a huge, meaningless-looking probability — this
+// floor keeps the "most confident" leaderboard about real roles, not noise.
+// (Player pages still show every prop regardless of this floor.)
+function isLeaderboardWorthy(prop){
+  return prop.unit === 'yds' ? prop.line >= 8 : prop.line >= 1.5;
+}
+
 function renderTopProps(){
   const ranked = [];
   PLAYERS.forEach(player => {
     if(player.bye || player.status === 'Out') return;
     (player.props || []).forEach(prop => {
+      if(!isLeaderboardWorthy(prop)) return;
       const c = computeProp(player, prop);
       const pick = c.pOver >= 0.5 ? 'over' : 'under';
       const pct = pick === 'over' ? c.pOver : 1 - c.pOver;
@@ -1466,7 +1013,7 @@ function renderTopProps(){
   }).join('');
 
   return `
-    <p class="lb-intro">Every active prop across the roster, ranked by model confidence — whichever side (over or under) the projection leans hardest, regardless of player or position. Search above for any individual player or team.</p>
+    <p class="lb-intro">Every meaningful-volume prop across the roster, ranked by model confidence — whichever side (over or under) the projection leans hardest, regardless of player or position. Near-zero lines (a single incidental catch, say) are excluded here since a tiny sample swings probability wildly — a player's own page still shows everything. Search above for any individual player or team.</p>
     <div class="leaderboard">${rows}</div>`;
 }
 
@@ -1549,10 +1096,8 @@ function renderMatchupBlock(team){
 }
 
 function renderDefenseSchematic(team){
-  const blitzRate = team.defense.blitzRate;
-  const assumed = blitzRate == null;
-  const rate = assumed ? 25 : blitzRate;
-  const extra = Math.max(0, Math.min(3, Math.round(rate/15)));
+  const rate = team.defense.pressureRate;
+  const extra = Math.max(0, Math.min(3, Math.round((rate - 10) / 7)));
   const rushers = 4 + extra;
   const coverage = 11 - rushers;
 
@@ -1591,7 +1136,7 @@ function renderDefenseSchematic(team){
         <span><i style="background:var(--bad)"></i> Rushing the passer (${rushers})</span>
         <span><i style="background:var(--chart-2)"></i> Dropping into coverage (${coverage})</span>
       </div>
-      <p class="tendency-note" style="text-align:center">Illustrative, not a real charted play — rush/coverage counts are shaped by ${assumed ? 'a league-average blitz rate (this team\'s own rate isn\'t public)' : `this team's own ${rate}% blitz rate`} on an average passing down.</p>
+      <p class="tendency-note" style="text-align:center">Illustrative, not a real charted play — rush/coverage counts are shaped by this defense's real ${rate}% pressure rate (sacks + QB hits per dropback, from actual play-by-play) on an average passing down.</p>
     </div>`;
 }
 
@@ -1623,12 +1168,11 @@ function renderTeam(abbr){
     <h3 class="section-lbl">Defense this season</h3>
     <div class="stat-tiles">
       <div class="stat-tile"><div class="lbl">Sacks</div><div class="big">${d.sacks ?? '—'}</div></div>
-      <div class="stat-tile"><div class="lbl">Blitz Rate</div><div class="big">${d.blitzRate!=null ? d.blitzRate+'%' : '—'}</div></div>
       <div class="stat-tile"><div class="lbl">Pressure Rate</div><div class="big">${d.pressureRate!=null ? d.pressureRate+'%' : '—'}</div></div>
       <div class="stat-tile"><div class="lbl">Pass Yds Allowed</div><div class="big">${d.passYdsAllowed ?? '—'}</div><div class="rank">${d.passRank ? '#'+d.passRank+' in NFL' : ''}</div></div>
       <div class="stat-tile"><div class="lbl">Rush Yds Allowed</div><div class="big">${d.rushYdsAllowed ?? '—'}</div><div class="rank">${d.rushRank ? '#'+d.rushRank+' in NFL' : ''}</div></div>
     </div>
-    ${(d.blitzRate==null || d.pressureRate==null) ? `<p class="legend" style="margin-top:-18px">Blitz/pressure rate is NFL Next Gen Stats data — not every team's figure was confirmed via public pages at research time.</p>` : ''}
+    <p class="legend" style="margin-top:-18px">Computed directly from this season's play-by-play — sacks and pressure rate (sacks + QB hits per dropback) are real, not a sourced estimate.</p>
 
     ${renderDefenseSchematic(team)}
 
@@ -1724,12 +1268,28 @@ function selectItem(type, id){
   }
 }
 
-document.getElementById('asofDate').textContent = ASOF.toLocaleString(undefined,{
-  month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit'
-});
+document.getElementById('results').innerHTML = `<p class="legend">Loading real stats from nflverse + ESPN…</p>`;
 
-// Land on the top-props leaderboard by default — no player or team selected yet
-renderHome();
+fetch('./nfl_data.json')
+  .then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+  .then(data => {
+    PLAYERS = data.players;
+    TEAMS = data.teams;
+    META = data.meta;
+    const asofEl = document.getElementById('asofDate');
+    const generated = META.generatedAt ? new Date(META.generatedAt) : null;
+    asofEl.textContent = generated
+      ? generated.toLocaleString(undefined,{month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit'})
+      : '—';
+    document.querySelector('.asof > div:first-child').innerHTML =
+      `<span class="live-dot"></span><b>Live pull</b> — through Week ${META.throughWeek}, ${META.season}`;
+    // Land on the top-props leaderboard by default — no player or team selected yet
+    renderHome();
+  })
+  .catch(err => {
+    document.getElementById('results').innerHTML =
+      `<div class="bye-note"><b>Couldn't load nfl_data.json</b> (${err.message}). Run data-pipeline/build_data.py and make sure nfl_data.json is published next to index.html.</div>`;
+  });
 </script>
 </body>
 </html>
