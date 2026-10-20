@@ -1,0 +1,1297 @@
+<title>Gridiron Edge</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Libre+Franklin:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --ground:#F3F1E9;
+    --surface:#FFFFFF;
+    --surface-raised:#FBFAF5;
+    --ink:#181F21;
+    --ink-dim:#5B6360;
+    --ink-faint:#8B9290;
+    --accent:#9C6B1F;
+    --accent-ink:#FFFFFF;
+    --accent-soft:#F0E1C4;
+    --line:#DEDACB;
+    --line-strong:#C9C3AE;
+    --good:#2F7D52;
+    --good-soft:#DCEEE1;
+    --bad:#AE4B3C;
+    --bad-soft:#F6DFDA;
+    --mid:#9C6B1F;
+    --mid-soft:#F0E1C4;
+    --chart-1:#9C6B1F;
+    --chart-2:#3E7A8C;
+    --chart-3:#8C5A82;
+    --shadow: 0 1px 2px rgba(24,31,33,.06), 0 8px 24px -12px rgba(24,31,33,.18);
+    --font-display:'Big Shoulders Display', 'Arial Narrow', sans-serif;
+    --font-body:'Libre Franklin', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono:'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#10161A;
+      --surface:#161E22;
+      --surface-raised:#1C262B;
+      --ink:#ECEBE4;
+      --ink-dim:#A4ACA8;
+      --ink-faint:#707876;
+      --accent:#E0AE5E;
+      --accent-ink:#1A1304;
+      --accent-soft:#3A2F17;
+      --line:#2A3438;
+      --line-strong:#3A4549;
+      --good:#6CBA8C;
+      --good-soft:#163A28;
+      --bad:#E08A7A;
+      --bad-soft:#402420;
+      --mid:#E0AE5E;
+      --mid-soft:#3A2F17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 28px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#10161A;
+    --surface:#161E22;
+    --surface-raised:#1C262B;
+    --ink:#ECEBE4;
+    --ink-dim:#A4ACA8;
+    --ink-faint:#707876;
+    --accent:#E0AE5E;
+    --accent-ink:#1A1304;
+    --accent-soft:#3A2F17;
+    --line:#2A3438;
+    --line-strong:#3A4549;
+    --good:#6CBA8C;
+    --good-soft:#163A28;
+    --bad:#E08A7A;
+    --bad-soft:#402420;
+    --mid:#E0AE5E;
+    --mid-soft:#3A2F17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 28px -14px rgba(0,0,0,.6);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--ground);
+    color:var(--ink);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background:var(--accent-soft); }
+
+  .wrap{ max-width:1180px; margin:0 auto; padding:28px 24px 80px; }
+
+  /* ---------- Header ---------- */
+  header.top{
+    display:flex; align-items:flex-end; justify-content:space-between; gap:24px;
+    border-bottom:1px solid var(--line-strong);
+    padding-bottom:18px; margin-bottom:22px;
+    flex-wrap:wrap;
+  }
+  .brand{ display:flex; align-items:baseline; gap:12px; }
+  .brand .mark{
+    font-family:var(--font-display); font-weight:800; font-size:14px;
+    letter-spacing:.14em; color:var(--accent-ink); background:var(--accent);
+    padding:3px 8px; border-radius:3px;
+  }
+  .brand h1{
+    font-family:var(--font-display); font-weight:700; font-size:34px;
+    letter-spacing:.01em; margin:0; line-height:1;
+    text-wrap:balance;
+  }
+  .brand .tag{ font-size:13px; color:var(--ink-dim); margin-top:4px; }
+  .asof{
+    font-family:var(--font-mono); font-size:12px; color:var(--ink-faint);
+    text-align:right; line-height:1.5;
+  }
+  .asof b{ color:var(--ink-dim); font-weight:600; }
+  .live-dot{
+    display:inline-block; width:6px; height:6px; border-radius:50%;
+    background:var(--good); margin-right:6px; box-shadow:0 0 0 3px var(--good-soft);
+  }
+
+  /* ---------- Search ---------- */
+  .search-row{ position:relative; margin-bottom:28px; }
+  .search-box{
+    display:flex; align-items:center; gap:10px;
+    background:var(--surface); border:1px solid var(--line-strong);
+    border-radius:10px; padding:12px 16px; box-shadow:var(--shadow);
+  }
+  .search-box svg{ flex:none; color:var(--ink-faint); }
+  .search-box input{
+    flex:1; border:0; background:transparent; outline:0;
+    font-family:var(--font-body); font-size:16px; color:var(--ink);
+  }
+  .search-box input::placeholder{ color:var(--ink-faint); }
+  .search-box kbd{
+    font-family:var(--font-mono); font-size:11px; color:var(--ink-faint);
+    border:1px solid var(--line); border-radius:4px; padding:2px 6px;
+  }
+  .suggest{
+    position:absolute; top:calc(100% + 6px); left:0; right:0;
+    background:var(--surface); border:1px solid var(--line-strong);
+    border-radius:10px; box-shadow:var(--shadow); overflow:hidden; z-index:5;
+    max-height:360px; overflow-y:auto;
+  }
+  .suggest button{
+    width:100%; display:flex; align-items:center; gap:12px;
+    padding:10px 16px; border:0; background:none; text-align:left; cursor:pointer;
+    border-bottom:1px solid var(--line); font-family:var(--font-body); color:var(--ink);
+  }
+  .suggest button:last-child{ border-bottom:0; }
+  .suggest button:hover, .suggest button.active{ background:var(--surface-raised); }
+  .suggest .pos{
+    font-family:var(--font-mono); font-size:10px; font-weight:600; letter-spacing:.04em;
+    color:var(--ink-dim); background:var(--surface-raised); border:1px solid var(--line);
+    border-radius:4px; padding:2px 6px; flex:none; width:30px; text-align:center;
+  }
+  .suggest .name{ font-weight:600; flex:1; }
+  .suggest .team{ font-family:var(--font-mono); font-size:12px; color:var(--ink-faint); }
+
+  .chips{ display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+  .chips span{ font-size:12px; color:var(--ink-faint); padding-top:3px; }
+  .chip{
+    font-family:var(--font-mono); font-size:12px; color:var(--ink-dim);
+    background:var(--surface); border:1px solid var(--line); border-radius:999px;
+    padding:4px 11px; cursor:pointer;
+  }
+  .chip:hover{ border-color:var(--accent); color:var(--accent); }
+
+  /* ---------- Player header ---------- */
+  .player-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    padding:22px 24px; margin-bottom:22px; box-shadow:var(--shadow);
+    display:flex; gap:22px; flex-wrap:wrap; justify-content:space-between;
+  }
+  .player-id{ display:flex; gap:16px; align-items:center; }
+  .player-num{
+    font-family:var(--font-display); font-weight:800; font-size:40px;
+    color:var(--surface-raised); background:var(--ink); border-radius:10px;
+    width:64px; height:64px; display:flex; align-items:center; justify-content:center;
+    flex:none; line-height:1;
+  }
+  .player-meta h2{
+    font-family:var(--font-display); font-weight:700; font-size:28px; margin:0;
+    line-height:1.05;
+  }
+  .player-meta .sub{
+    font-family:var(--font-mono); font-size:12.5px; color:var(--ink-dim); margin-top:4px;
+    display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+  }
+  .dot-sep::before{ content:'·'; margin-right:10px; color:var(--ink-faint); }
+
+  .status-badge{
+    font-family:var(--font-mono); font-size:11px; font-weight:600; letter-spacing:.03em;
+    padding:3px 9px; border-radius:999px; text-transform:uppercase;
+  }
+  .status-healthy{ background:var(--good-soft); color:var(--good); }
+  .status-questionable{ background:var(--mid-soft); color:var(--mid); }
+  .status-probable{ background:var(--mid-soft); color:var(--mid); }
+  .status-out{ background:var(--bad-soft); color:var(--bad); }
+
+  .next-matchup{ text-align:right; }
+  .next-matchup .lbl{
+    font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint);
+  }
+  .next-matchup .val{ font-family:var(--font-display); font-weight:700; font-size:20px; margin-top:2px; }
+  .next-matchup .rank{ font-family:var(--font-mono); font-size:12px; color:var(--ink-dim); margin-top:2px; }
+
+  .news-line{
+    margin-top:14px; padding-top:14px; border-top:1px solid var(--line);
+    font-size:13.5px; color:var(--ink-dim); flex-basis:100%;
+    display:flex; gap:8px;
+  }
+  .news-line svg{ flex:none; margin-top:2px; color:var(--accent); }
+
+  /* ---------- Section label ---------- */
+  .section-lbl{
+    font-family:var(--font-mono); font-size:11px; text-transform:uppercase;
+    letter-spacing:.1em; color:var(--ink-faint); margin:0 0 12px; display:flex;
+    align-items:center; gap:10px;
+  }
+  .section-lbl::after{ content:''; height:1px; flex:1; background:var(--line); }
+
+  /* ---------- Prop grid ---------- */
+  .prop-grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(258px,1fr));
+    gap:14px; margin-bottom:28px;
+  }
+  .prop-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:18px; display:flex; flex-direction:column; gap:12px; box-shadow:var(--shadow);
+  }
+  .prop-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .prop-name{ font-weight:600; font-size:14.5px; }
+  .prop-name .unit{ color:var(--ink-faint); font-weight:400; font-size:12.5px; }
+  .conf-pill{
+    font-family:var(--font-mono); font-size:10.5px; font-weight:600; letter-spacing:.03em;
+    padding:2px 8px; border-radius:999px; text-transform:uppercase; flex:none;
+  }
+  .conf-high{ background:var(--good-soft); color:var(--good); }
+  .conf-mid{ background:var(--mid-soft); color:var(--mid); }
+  .conf-low{ background:var(--line); color:var(--ink-dim); }
+
+  .prop-numbers{ display:flex; align-items:baseline; gap:14px; }
+  .proj{ font-family:var(--font-display); font-weight:700; font-size:34px; line-height:1; }
+  .proj .vs{ font-family:var(--font-body); font-size:12px; color:var(--ink-faint); font-weight:500; margin:0 2px;}
+  .line-val{ font-family:var(--font-mono); font-size:15px; color:var(--ink-dim); }
+
+  .bar-track{
+    height:8px; border-radius:999px; background:var(--surface-raised);
+    border:1px solid var(--line); overflow:hidden; position:relative;
+  }
+  .bar-fill{ height:100%; border-radius:999px 0 0 999px; }
+  .over-fill{ background:var(--good); }
+  .under-fill{ background:var(--bad); }
+
+  .prob-row{ display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:12px; }
+  .prob-row .side{ color:var(--ink-dim); }
+  .prob-row .pick b{ font-size:13px; }
+  .pick.over b{ color:var(--good); }
+  .pick.under b{ color:var(--bad); }
+
+  .factors{ display:flex; gap:6px; flex-wrap:wrap; margin-top:2px; }
+  .factor{
+    font-family:var(--font-mono); font-size:10.5px; color:var(--ink-dim);
+    background:var(--surface-raised); border:1px solid var(--line); border-radius:6px;
+    padding:3px 7px;
+  }
+  .factor.pos{ color:var(--good); }
+  .factor.neg{ color:var(--bad); }
+
+  /* ---------- Game log table ---------- */
+  .table-wrap{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    overflow:hidden; box-shadow:var(--shadow); margin-bottom:28px;
+  }
+  .table-scroll{ overflow-x:auto; }
+  table{ width:100%; border-collapse:collapse; min-width:560px; }
+  thead th{
+    text-align:right; font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase;
+    letter-spacing:.06em; color:var(--ink-faint); font-weight:500; padding:11px 16px;
+    border-bottom:1px solid var(--line-strong); white-space:nowrap;
+  }
+  thead th:first-child{ text-align:left; }
+  tbody td{
+    text-align:right; padding:10px 16px; font-family:var(--font-mono); font-size:13px;
+    border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums;
+  }
+  tbody td:first-child{ text-align:left; font-family:var(--font-body); color:var(--ink-dim); }
+  tbody tr:last-child td{ border-bottom:0; }
+  tbody tr:hover{ background:var(--surface-raised); }
+
+  /* ---------- Methodology ---------- */
+  details.method{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:4px 20px; margin-bottom:22px;
+  }
+  details.method summary{
+    cursor:pointer; padding:14px 0; font-family:var(--font-display); font-weight:700;
+    font-size:17px; list-style:none; display:flex; justify-content:space-between; align-items:center;
+  }
+  details.method summary::-webkit-details-marker{ display:none; }
+  details.method summary .ic{ font-family:var(--font-mono); font-size:13px; color:var(--ink-faint); transition:transform .15s; }
+  details.method[open] summary .ic{ transform:rotate(45deg); }
+  .method-body{ padding-bottom:18px; font-size:14px; color:var(--ink-dim); line-height:1.65; }
+  .method-body code{
+    font-family:var(--font-mono); font-size:12.5px; background:var(--surface-raised);
+    padding:1px 5px; border-radius:4px; color:var(--ink);
+  }
+  .method-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-top:12px; }
+  .method-grid .m{ border-left:2px solid var(--accent); padding-left:12px; }
+  .method-grid .m h4{ margin:0 0 4px; font-size:13px; color:var(--ink); font-family:var(--font-body); font-weight:600; }
+  .method-grid .m p{ margin:0; font-size:13px; }
+
+  footer.disclaimer{
+    font-size:12.5px; color:var(--ink-faint); line-height:1.7; border-top:1px solid var(--line);
+    padding-top:18px; max-width:760px;
+  }
+  footer.disclaimer b{ color:var(--ink-dim); }
+
+  .empty-state{
+    text-align:center; padding:70px 20px; color:var(--ink-faint);
+  }
+  .empty-state .ball{ font-size:34px; margin-bottom:10px; }
+  .empty-state h3{ font-family:var(--font-display); font-weight:700; font-size:22px; color:var(--ink-dim); margin:0 0 6px; }
+
+  .bye-note{
+    background:var(--surface); border:1px dashed var(--line-strong); border-radius:12px;
+    padding:20px 22px; margin-bottom:28px; color:var(--ink-dim); font-size:14px; line-height:1.6;
+  }
+  .bye-note b{ color:var(--ink); }
+  .est-flag{ color:var(--ink-faint); font-weight:500; }
+  .legend{
+    font-family:var(--font-mono); font-size:11.5px; color:var(--ink-faint);
+    margin:-10px 0 22px;
+  }
+
+  /* ---------- Search: mixed player/team suggestions ---------- */
+  .suggest .pos.team-tag{ width:40px; color:var(--accent); border-color:var(--accent-soft); }
+  .teams-row{ display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; align-items:center; }
+  .teams-row span{ font-size:12px; color:var(--ink-faint); padding-top:3px; }
+
+  /* ---------- Defense link from a player card ---------- */
+  .opp-link{
+    font-family:var(--font-mono); font-size:11.5px; color:var(--accent);
+    background:none; border:0; padding:2px 0; margin-top:4px; cursor:pointer;
+    text-decoration:underline; text-underline-offset:2px;
+  }
+  .opp-link:hover{ color:var(--ink); }
+
+  /* ---------- Team profile ---------- */
+  .team-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    padding:22px 24px; margin-bottom:22px; box-shadow:var(--shadow);
+    display:flex; gap:22px; flex-wrap:wrap; justify-content:space-between;
+  }
+  .team-id h2{ font-family:var(--font-display); font-weight:700; font-size:28px; margin:0; line-height:1.05; }
+  .team-id .sub{
+    font-family:var(--font-mono); font-size:12.5px; color:var(--ink-dim); margin-top:4px;
+    display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+  }
+  .streak-badge{
+    font-family:var(--font-mono); font-size:11px; font-weight:600; letter-spacing:.03em;
+    padding:3px 9px; border-radius:999px; text-transform:uppercase;
+  }
+  .streak-badge.win{ background:var(--good-soft); color:var(--good); }
+  .streak-badge.loss{ background:var(--bad-soft); color:var(--bad); }
+
+  .stat-tiles{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(130px,1fr));
+    gap:12px; margin-bottom:28px;
+  }
+  .stat-tile{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:16px 18px; box-shadow:var(--shadow);
+  }
+  .stat-tile .lbl{ font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-faint); }
+  .stat-tile .big{ font-family:var(--font-display); font-weight:700; font-size:30px; margin-top:4px; line-height:1; }
+  .stat-tile .rank{ font-family:var(--font-mono); font-size:11.5px; color:var(--ink-dim); margin-top:4px; }
+
+  .tendency-wrap{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:20px 22px; margin-bottom:28px; box-shadow:var(--shadow);
+  }
+  .tendency-row + .tendency-row{ margin-top:18px; }
+  .tendency-row .t-lbl{
+    font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-faint);
+    margin-bottom:8px;
+  }
+  .tendency-bar{
+    display:flex; height:34px; border-radius:8px; overflow:hidden; border:1px solid var(--line);
+  }
+  .tendency-bar .seg{
+    display:flex; align-items:center; justify-content:center; color:#fff;
+    font-family:var(--font-mono); font-size:11.5px; font-weight:600; white-space:nowrap;
+    overflow:hidden; text-shadow:0 1px 1px rgba(0,0,0,.25);
+  }
+  .tendency-note{
+    font-family:var(--font-mono); font-size:12px; color:var(--ink-faint); margin-top:10px;
+  }
+  .tendency-unavailable{
+    border:1px dashed var(--line-strong); border-radius:10px; padding:16px 18px;
+    color:var(--ink-faint); font-size:13.5px; margin-bottom:28px; background:var(--surface);
+  }
+
+  .roster-chips{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:28px; }
+  .roster-chip{
+    font-family:var(--font-mono); font-size:12px; color:var(--ink-dim);
+    background:var(--surface); border:1px solid var(--line); border-radius:999px;
+    padding:6px 12px; cursor:pointer; display:flex; gap:6px; align-items:center;
+  }
+  .roster-chip .p{ color:var(--ink-faint); }
+  .roster-chip:hover{ border-color:var(--accent); color:var(--accent); }
+
+  @media (max-width:640px){
+    .brand h1{ font-size:26px; }
+    .next-matchup{ text-align:left; }
+    .player-card{ flex-direction:column; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <span class="mark">NFL</span>
+      <div>
+        <h1>Gridiron Edge</h1>
+        <div class="tag">Player prop projections built from box scores, not vibes</div>
+      </div>
+    </div>
+    <div class="asof">
+      <div><span class="live-dot"></span><b>Research pull</b> — through Week 6, 2026</div>
+      <div>Updated <b id="asofDate">—</b></div>
+    </div>
+  </header>
+
+  <div class="search-row">
+    <div class="search-box">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="searchInput" type="text" placeholder="Search a player or team — try “Jefferson” or “Ravens”" autocomplete="off" />
+      <kbd>⏎</kbd>
+    </div>
+    <div id="suggestBox" class="suggest" hidden></div>
+    <div class="chips">
+      <span>Quick picks:</span>
+      <button class="chip" data-type="player" data-id="jjefferson">J. Jefferson</button>
+      <button class="chip" data-type="player" data-id="jallen">J. Allen</button>
+      <button class="chip" data-type="player" data-id="cmccaffrey">C. McCaffrey</button>
+      <button class="chip" data-type="player" data-id="tkelce">T. Kelce</button>
+      <button class="chip" data-type="player" data-id="jchase">J. Chase</button>
+    </div>
+    <div class="teams-row">
+      <span>Teams:</span>
+      <button class="chip" data-type="team" data-id="BUF">Bills</button>
+      <button class="chip" data-type="team" data-id="KC">Chiefs</button>
+      <button class="chip" data-type="team" data-id="SF">49ers</button>
+      <button class="chip" data-type="team" data-id="DAL">Cowboys</button>
+      <button class="chip" data-type="team" data-id="PHI">Eagles</button>
+    </div>
+  </div>
+
+  <div id="results"></div>
+
+  <details class="method" id="methodDetails">
+    <summary>How these projections are built <span class="ic">+</span></summary>
+    <div class="method-body">
+      <p>Every number on this page is computed in your browser from a data snapshot researched against public sources (ESPN game logs, team injury reports, and public betting-market references) as of the "Updated" timestamp above — there's no hidden model and no outside call at page load. A production version would automate that same research each morning from free public sources (ESPN's public scoreboard/roster endpoints, the <code>nflverse</code> play-by-play archive, and team injury reports) and recompute on that schedule — nothing here depends on a paid odds feed. Lines marked <span class="est-flag">~</span> are pace-based estimates because a firm Week 7 number wasn't posted at research time, not a live quote.</p>
+      <div class="method-grid">
+        <div class="m">
+          <h4>1. Blended baseline</h4>
+          <p>50% last-3-game average, 30% full-season average, 20% most recent game — recent form counts, but one outlier game can't swing it.</p>
+        </div>
+        <div class="m">
+          <h4>2. Matchup adjustment</h4>
+          <p>Shifts the baseline up to ±12% based on the opponent's rank against that position — a bottom-5 defense nudges the projection up, a top-5 defense pulls it down.</p>
+        </div>
+        <div class="m">
+          <h4>3. Availability discount</h4>
+          <p>Questionable/probable tags shave the projection (7% / 2%) for expected snap or target share loss. A player ruled <code>Out</code> is flagged and skipped.</p>
+        </div>
+        <div class="m">
+          <h4>4. Probability, not certainty</h4>
+          <p>Game-to-game variance (from a real log, or a generic estimate when one isn't on file) sets a spread around the projection; that spread estimates the odds of clearing the line — shown as a percentage, never a lock.</p>
+        </div>
+        <div class="m">
+          <h4>5. Two tiers of depth</h4>
+          <p>13 "featured" players carry a full 5-game log and researched market lines. Everyone else — the rest of the league's starting QBs and top skill players — runs on season-pace averages only, clearly labeled "Season snapshot," with the line set to that pace rather than a sourced market number.</p>
+        </div>
+        <div class="m">
+          <h4>6. Why QB passing charts are mostly blank</h4>
+          <p>Next Gen Stats' free public pages don't publish a per-player field-side or depth-of-target breakdown — that level of detail is behind NFL's paid data products. Where NGS does publish a real aggregate (avg. intended air yards, aggressiveness, time to throw), it's shown; otherwise the panel says so rather than estimating a chart.</p>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <footer class="disclaimer">
+    <b>This is an analytical estimate, not a guarantee.</b> Projections are built from a transparent statistical blend of historical performance and matchup context — they do not account for in-game events, weather, or late-breaking news beyond what's shown, and they are not financial or betting advice. Sportsbook lines shown are illustrative samples, not live quotes. If sports betting stops being fun, <b>1-800-GAMBLER</b> is free and confidential.
+  </footer>
+
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Sample data — stands in for a daily pull from free public endpoints
+// (ESPN public API for box scores/rosters/news, nflverse for play-by-play
+// aggregates, team-published injury reports).
+// ---------------------------------------------------------------------------
+const ASOF = new Date(2026, 9, 19, 9, 0); // Mon Oct 19, 2026 — stats through Week 6, lines for Week 7
+
+const STATUS_FACTOR = { Healthy:1, Probable:0.98, Questionable:0.93, Out:0 };
+const POS_RANK_KEY = { QB:'pass', RB:'rush', WR:'rec', TE:'rec' };
+const STAT_LABELS = {
+  passYd:'Pass Yds', passTd:'Pass TDs', cmp:'Cmp',
+  rushYd:'Rush Yds', rec:'Rec', recYd:'Rec Yds', recTd:'Rec TDs'
+};
+const PROP_META = {
+  passYd:['Passing Yards','yds'], passTd:['Passing TDs','td'], cmp:['Completions','cmp'],
+  rushYd:['Rushing Yards','yds'], rec:['Receptions','rec'], recYd:['Receiving Yards','yds'], recTd:['Receiving TDs','td']
+};
+// Auto-builds prop cards straight from a season-average line for the league-wide
+// "lite tier" roster — there's no per-player market line to source at this scale,
+// so the line is the season pace itself, always flagged as an estimate.
+function autoProps(season){
+  return Object.keys(season).filter(k => PROP_META[k]).map(k => ({
+    key:k, label:PROP_META[k][0], unit:PROP_META[k][1],
+    line: Math.round(season[k]*2)/2, estimated:true
+  }));
+}
+
+const PLAYERS = [
+  {
+    id:'jallen', name:'Josh Allen', team:'BUF', pos:'QB', num:17,
+    status:'Healthy', bye:true, opp:'BYE',
+    news:'No Week 7 opponent — Buffalo is on its bye. Shown below: Week 6 form and season pace.',
+    log:[ {wk:2,opp:'DET',passYd:248,passTd:3,cmp:20}, {wk:3,opp:'LAC',passYd:204,passTd:0,cmp:16},
+          {wk:4,opp:'NE',passYd:253,passTd:1,cmp:23}, {wk:5,opp:'LAR',passYd:210,passTd:1,cmp:12},
+          {wk:6,opp:'LV',passYd:255,passTd:2,cmp:23} ],
+    season:{passYd:250.7, passTd:1.5, cmp:18.8},
+    props:[]
+  },
+  {
+    id:'pmahomes', name:'Patrick Mahomes', team:'KC', pos:'QB', num:15,
+    status:'Healthy', opp:'SEA', oppRank:{pass:1, rec:1},
+    news:'No injury designation; Chiefs host a short week before the Week 7 trip to Seattle.',
+    log:[ {wk:1,opp:'DEN',passYd:184,passTd:2,cmp:15}, {wk:2,opp:'IND',passYd:382,passTd:3,cmp:32},
+          {wk:3,opp:'MIA',passYd:246,passTd:2,cmp:20}, {wk:4,opp:'LV',passYd:225,passTd:2,cmp:15},
+          {wk:5,opp:'LAC',passYd:272,passTd:0,cmp:23} ],
+    season:{passYd:261.8, passTd:1.8, cmp:21.0},
+    props:[
+      {key:'passYd', label:'Passing Yards', unit:'yds', line:220.5},
+      {key:'cmp', label:'Completions', unit:'cmp', line:21.5, estimated:true},
+      {key:'passTd', label:'Passing TDs', unit:'td', line:1.5, estimated:true},
+    ]
+  },
+  {
+    id:'ljackson', name:'Lamar Jackson', team:'BAL', pos:'QB', num:8,
+    status:'Questionable', opp:'CIN', oppRank:{pass:18, rec:18},
+    news:'Day-to-day with the left ankle sprain that cost him Weeks 5–6; coach puts his Week 7 return at roughly 50/50.',
+    log:[ {wk:1,opp:'IND',passYd:324,passTd:1,cmp:17}, {wk:2,opp:'NO',passYd:235,passTd:1,cmp:21},
+          {wk:3,opp:'DAL',passYd:186,passTd:2,cmp:15}, {wk:4,opp:'TEN',passYd:222,passTd:2,cmp:15} ],
+    season:{passYd:241.8, passTd:1.5, cmp:17.0},
+    props:[
+      {key:'passYd', label:'Passing Yards', unit:'yds', line:219.5},
+      {key:'passTd', label:'Passing TDs', unit:'td', line:1.5, estimated:true},
+      {key:'cmp', label:'Completions', unit:'cmp', line:17.5, estimated:true},
+    ]
+  },
+  {
+    id:'cmccaffrey', name:'Christian McCaffrey', team:'SF', pos:'RB', num:23,
+    status:'Healthy', opp:'ATL', oppRank:{rush:1, rec:19},
+    news:'Full workload back since clearing offseason Achilles concerns; Thursday rest day was load management, not injury.',
+    log:[ {wk:1,opp:'LAR',rushYd:68,rec:5,recYd:20}, {wk:2,opp:'MIA',rushYd:23,rec:4,recYd:43},
+          {wk:3,opp:'ARI',rushYd:75,rec:4,recYd:41}, {wk:4,opp:'DEN',rushYd:52,rec:3,recYd:18},
+          {wk:5,opp:'SEA',rushYd:68,rec:3,recYd:15} ],
+    season:{rushYd:57.2, rec:3.8, recYd:27.4},
+    props:[
+      {key:'rushYd', label:'Rushing Yards', unit:'yds', line:61.5, estimated:true},
+      {key:'rec', label:'Receptions', unit:'rec', line:4.5, estimated:true},
+      {key:'recYd', label:'Receiving Yards', unit:'yds', line:27.5, estimated:true},
+    ]
+  },
+  {
+    id:'bbrobinson', name:'Bijan Robinson', team:'ATL', pos:'RB', num:7,
+    status:'Healthy', opp:'SF', oppRank:{rush:11, rec:20},
+    news:'Full practice participant, no designation — workload has climbed in three of his last four games.',
+    log:[ {wk:2,opp:'CAR',rushYd:72,rec:3,recYd:9}, {wk:3,opp:'GB',rushYd:194,rec:2,recYd:19},
+          {wk:4,opp:'NO',rushYd:145,rec:1,recYd:2}, {wk:5,opp:'BAL',rushYd:86,rec:4,recYd:32},
+          {wk:6,opp:'CHI',rushYd:61,rec:2,recYd:-8} ],
+    season:{rushYd:106.8, rec:3.3, recYd:24.0},
+    props:[
+      {key:'rushYd', label:'Rushing Yards', unit:'yds', line:77.5},
+      {key:'rec', label:'Receptions', unit:'rec', line:3.5, estimated:true},
+    ]
+  },
+  {
+    id:'dhenry', name:'Derrick Henry', team:'BAL', pos:'RB', num:22,
+    status:'Healthy', opp:'CIN', oppRank:{rush:22, rec:28},
+    news:'No injury designation despite a scoreless Week 6 — that game’s struggles tracked with Lamar Jackson’s ankle, not Henry.',
+    log:[ {wk:2,opp:'NO',rushYd:68,rec:3,recYd:19}, {wk:3,opp:'DAL',rushYd:89,rec:1,recYd:0},
+          {wk:4,opp:'TEN',rushYd:73,rec:2,recYd:6}, {wk:5,opp:'ATL',rushYd:102,rec:1,recYd:18},
+          {wk:6,opp:'CLE',rushYd:58,rec:1,recYd:2} ],
+    season:{rushYd:89.0, rec:1.5, recYd:10.7},
+    props:[
+      {key:'rushYd', label:'Rushing Yards', unit:'yds', line:80.5},
+      {key:'rec', label:'Receptions', unit:'rec', line:1.5, estimated:true},
+    ]
+  },
+  {
+    id:'sbarkley', name:'Saquon Barkley', team:'PHI', pos:'RB', num:26,
+    status:'Questionable', opp:'DAL', oppRank:{rush:32, rec:22},
+    news:'Week-to-week with a hamstring strain since Week 5, hasn’t practiced since — extra rest before the Monday-night trip to Dallas could get him back.',
+    log:[ {wk:1,opp:'WAS',rushYd:83,rec:1,recYd:-3}, {wk:2,opp:'TEN',rushYd:9,rec:1,recYd:11},
+          {wk:3,opp:'CHI',rushYd:82,rec:1,recYd:-2}, {wk:4,opp:'LAR',rushYd:8,rec:1,recYd:2} ],
+    season:{rushYd:45.5, rec:1.0, recYd:2.0},
+    props:[
+      {key:'rushYd', label:'Rushing Yards', unit:'yds', line:58.5, estimated:true},
+      {key:'rec', label:'Receptions', unit:'rec', line:1.5, estimated:true},
+    ]
+  },
+  {
+    id:'jjefferson', name:'Justin Jefferson', team:'MIN', pos:'WR', num:18,
+    status:'Probable', opp:'IND', oppRank:{rec:21},
+    news:'Played through a Week 4 ankle sprain scare and returned productive in Week 5; no new designation yet ahead of Week 7.',
+    log:[ {wk:1,opp:'GB',rec:8,recYd:92,recTd:2}, {wk:2,opp:'CHI',rec:3,recYd:55,recTd:0},
+          {wk:3,opp:'TB',rec:2,recYd:32,recTd:0}, {wk:5,opp:'NO',rec:6,recYd:79,recTd:1} ],
+    season:{rec:4.75, recYd:64.5, recTd:0.75},
+    props:[
+      {key:'recYd', label:'Receiving Yards', unit:'yds', line:77.5},
+      {key:'rec', label:'Receptions', unit:'rec', line:5.5, estimated:true},
+      {key:'recTd', label:'Receiving TDs', unit:'td', line:0.5, estimated:true},
+    ]
+  },
+  {
+    id:'jchase', name:"Ja'Marr Chase", team:'CIN', pos:'WR', num:1,
+    status:'Healthy', opp:'BAL', oppRank:{rec:24},
+    news:'Cleared the concussion protocol before Week 5 and played every snap; no issues since.',
+    log:[ {wk:1,opp:'TB',rec:2,recYd:12,recTd:0}, {wk:2,opp:'HOU',rec:7,recYd:75,recTd:2},
+          {wk:3,opp:'PIT',rec:9,recYd:98,recTd:1}, {wk:4,opp:'JAX',rec:3,recYd:27,recTd:0},
+          {wk:5,opp:'MIA',rec:6,recYd:77,recTd:1} ],
+    season:{rec:5.4, recYd:57.8, recTd:0.8},
+    props:[
+      {key:'recYd', label:'Receiving Yards', unit:'yds', line:78.5},
+      {key:'rec', label:'Receptions', unit:'rec', line:6.5},
+      {key:'recTd', label:'Receiving TDs', unit:'td', line:0.5},
+    ]
+  },
+  {
+    id:'clamb', name:'CeeDee Lamb', team:'DAL', pos:'WR', num:88,
+    status:'Probable', opp:'PHI', oppRank:{rec:27},
+    news:'Playing through a quad contusion since Week 5 — not on the injury report, logged a full workload in Week 6.',
+    log:[ {wk:2,opp:'WAS',rec:8,recYd:153,recTd:2}, {wk:3,opp:'BAL',rec:7,recYd:112,recTd:0},
+          {wk:4,opp:'HOU',rec:17,recYd:189,recTd:1}, {wk:5,opp:'TB',rec:2,recYd:9,recTd:0},
+          {wk:6,opp:'GB',rec:9,recYd:70,recTd:0} ],
+    season:{rec:8.0, recYd:96.2, recTd:0.67},
+    props:[
+      {key:'recYd', label:'Receiving Yards', unit:'yds', line:84.5},
+      {key:'rec', label:'Receptions', unit:'rec', line:7.5, estimated:true},
+    ]
+  },
+  {
+    id:'astbrown', name:'Amon-Ra St. Brown', team:'DET', pos:'WR', num:14,
+    status:'Healthy', opp:'GB', oppRank:{rec:15},
+    news:'No injury concerns reported all season; has led the Lions in targets in every game he’s played.',
+    log:[ {wk:1,opp:'NO',rec:10,recYd:67,recTd:2}, {wk:2,opp:'BUF',rec:9,recYd:142,recTd:2},
+          {wk:3,opp:'NYJ',rec:4,recYd:19,recTd:1}, {wk:4,opp:'CAR',rec:8,recYd:75,recTd:0},
+          {wk:5,opp:'ARI',rec:6,recYd:69,recTd:0} ],
+    season:{rec:7.4, recYd:74.4, recTd:1.0},
+    props:[
+      {key:'recYd', label:'Receiving Yards', unit:'yds', line:81.5},
+      {key:'rec', label:'Receptions', unit:'rec', line:6.5, estimated:true},
+      {key:'recTd', label:'Receiving TDs', unit:'td', line:0.5, estimated:true},
+    ]
+  },
+  {
+    id:'tkelce', name:'Travis Kelce', team:'KC', pos:'TE', num:87,
+    status:'Questionable', opp:'SEA', oppRank:{rec:20},
+    news:'Playing through a mild right ankle sprain from Week 6 vs. the Chargers; no formal designation issued yet.',
+    log:[ {wk:1,opp:'DEN',rec:3,recYd:71,recTd:0}, {wk:2,opp:'IND',rec:9,recYd:101,recTd:1},
+          {wk:3,opp:'MIA',rec:2,recYd:59,recTd:1}, {wk:4,opp:'LV',rec:2,recYd:15,recTd:0},
+          {wk:5,opp:'LAC',rec:4,recYd:53,recTd:0} ],
+    season:{rec:4.0, recYd:59.8, recTd:0.4},
+    props:[
+      {key:'recYd', label:'Receiving Yards', unit:'yds', line:48.5, estimated:true},
+      {key:'rec', label:'Receptions', unit:'rec', line:4.5, estimated:true},
+    ]
+  },
+  {
+    id:'slaporta', name:'Sam LaPorta', team:'DET', pos:'TE', num:87,
+    status:'Healthy', opp:'GB', oppRank:{rec:8},
+    news:'No current injury listing — an August camp hip issue resolved before the season opener.',
+    log:[ {wk:1,opp:'NO',rec:5,recYd:48,recTd:0}, {wk:2,opp:'BUF',rec:6,recYd:52,recTd:1},
+          {wk:3,opp:'NYJ',rec:3,recYd:44,recTd:0}, {wk:4,opp:'CAR',rec:8,recYd:84,recTd:1},
+          {wk:5,opp:'ARI',rec:5,recYd:88,recTd:1} ],
+    season:{rec:5.4, recYd:63.2, recTd:0.6},
+    props:[
+      {key:'recYd', label:'Receiving Yards', unit:'yds', line:44.5, estimated:true},
+      {key:'rec', label:'Receptions', unit:'rec', line:4.0, estimated:true},
+    ]
+  },
+
+  // -------------------------------------------------------------------------
+  // League-wide "lite tier" — every other team's starting QB plus top skill
+  // players, season-average level (no game-by-game log on file). Props are
+  // auto-built from the season pace itself via autoProps(), always flagged
+  // as estimates since there's no per-player market line sourced at this scale.
+  // -------------------------------------------------------------------------
+  { id:'jcook', name:'James Cook', team:'BUF', pos:'RB', num:4, status:'Healthy', bye:true, opp:'BYE',
+    news:'Buffalo is on its Week 7 bye. Team-leading back this season.', season:{rushYd:104.5}, props:[] },
+  { id:'kcoleman', name:'Keon Coleman', team:'BUF', pos:'WR', num:0, status:'Healthy', bye:true, opp:'BYE',
+    news:'Buffalo is on its Week 7 bye.', season:{rec:3.0, recYd:44.8}, props:[] },
+  { id:'kshakir', name:'Khalil Shakir', team:'BUF', pos:'WR', num:10, status:'Healthy', bye:true, opp:'BYE',
+    news:'Buffalo is on its Week 7 bye.', season:{rec:3.0, recYd:42.7}, props:[] },
+
+  { id:'dmaye', name:'Drake Maye', team:'NE', pos:'QB', num:10, status:'Healthy', opp:'CHI', oppRank:{pass:14},
+    news:'Thursday-nighter at Chicago after throwing 3 TD, 0 INT in Week 6 vs. the Jets.',
+    season:{passYd:244, passTd:1.8}, props:autoProps({passYd:244, passTd:1.8}) },
+  { id:'rstevenson', name:'Rhamondre Stevenson', team:'NE', pos:'RB', num:38, status:'Healthy', opp:'CHI', oppRank:{rush:8},
+    news:'Timeshare lead back in a run-heavy Patriots offense.', season:{rushYd:43.8, rec:2.0, recYd:18.5}, props:autoProps({rushYd:43.8, recYd:18.5}) },
+  { id:'thenderson', name:'TreVeyon Henderson', team:'NE', pos:'RB', num:32, status:'Healthy', opp:'CHI', oppRank:{rush:8},
+    news:'Complementary back behind Stevenson, healthy.', season:{rushYd:32.3, recYd:5.2}, props:autoProps({rushYd:32.3}) },
+  { id:'hhenry', name:'Hunter Henry', team:'NE', pos:'TE', num:85, status:'Healthy', opp:'CHI', oppRank:{rec:14},
+    news:'Healthy, steady red-zone target for Drake Maye.', season:{rec:3.17, recYd:37.5, recTd:0.33}, props:autoProps({rec:3.17, recYd:37.5}) },
+  { id:'rdoubs', name:'Romeo Doubs', team:'NE', pos:'WR', num:87, status:'Healthy', opp:'CHI', oppRank:{rec:14},
+    news:'Signed in free agency after leaving Green Bay; leads the Patriots in receiving.', season:{rec:2.17, recYd:36.5}, props:autoProps({recYd:36.5}) },
+
+  { id:'gwilson', name:'Garrett Wilson', team:'NYJ', pos:'WR', num:17, status:'Healthy', opp:'MIA', oppRank:{rec:15},
+    news:'Cleared a Week 3 concussion evaluation, fully active since.', season:{rec:6.0, recYd:65.8}, props:autoProps({rec:6.0, recYd:65.8}) },
+  { id:'mtaylor2', name:'Mason Taylor', team:'NYJ', pos:'TE', num:0, status:'Healthy', opp:'MIA', oppRank:{rec:15},
+    news:'Rookie tight end seeing a steady target share.', season:{rec:1.5, recYd:9.17}, props:autoProps({rec:1.5, recYd:9.17}) },
+  { id:'bhall', name:'Breece Hall', team:'NYJ', pos:'RB', num:20, status:'Questionable', opp:'MIA', oppRank:{rush:16},
+    news:'Right quad injury since Week 3 — has not practiced, week-to-week.', season:{rushYd:27.2, rec:1.67, recYd:17.0}, props:autoProps({rushYd:27.2, recYd:17.0}) },
+
+  { id:'jburrow', name:'Joe Burrow', team:'CIN', pos:'QB', num:9, status:'Healthy', opp:'BAL', oppRank:{pass:13},
+    news:'Healthy, no Week 7 concerns reported — off Cincinnati’s Week 6 bye.',
+    season:{passYd:272, passTd:2.2}, props:autoProps({passYd:272, passTd:2.2}) },
+  { id:'thiggins', name:'Tee Higgins', team:'CIN', pos:'WR', num:5, status:'Probable', opp:'BAL', oppRank:{rec:13},
+    news:'Managed a groin/neck issue in practice, trending to play.', season:{rec:5.4, recYd:84.6, recTd:0.4}, props:autoProps({rec:5.4, recYd:84.6}) },
+  { id:'cbrown', name:'Chase Brown', team:'CIN', pos:'RB', num:30, status:'Healthy', opp:'BAL', oppRank:{rush:11},
+    news:'Bengals lead back, no injury designation.', season:{rushYd:49.2, rec:4.8, recYd:24.8}, props:autoProps({rushYd:49.2, recYd:24.8}) },
+
+  { id:'zflowers', name:'Zay Flowers', team:'BAL', pos:'WR', num:4, status:'Healthy', opp:'CIN', oppRank:{rec:18},
+    news:'Managing a minor toe issue, not on the injury report.', season:{rec:5.33, recYd:78.5, recTd:0.33}, props:autoProps({rec:5.33, recYd:78.5}) },
+
+  { id:'dwatson', name:'Deshaun Watson', team:'CLE', pos:'QB', num:4, status:'Healthy', opp:'TEN', oppRank:{pass:17},
+    news:'Named Week 1 starter over Sanders/Gabriel and has held the job all season.',
+    season:{passYd:168.3, passTd:1.17}, props:autoProps({passYd:168.3, passTd:1.17}) },
+  { id:'jjeudy', name:'Jerry Jeudy', team:'CLE', pos:'WR', num:3, status:'Healthy', opp:'TEN', oppRank:{rec:17},
+    news:'Usage down with rookie receivers emerging, but healthy.', season:{rec:2.0, recYd:25.0}, props:autoProps({recYd:25.0}) },
+  { id:'qjudkins', name:'Quinshon Judkins', team:'CLE', pos:'RB', num:33, status:'Questionable', opp:'TEN', oppRank:{rush:21},
+    news:'Returning from an ankle injury that cost him Week 6, limited practice participant.', season:{rushYd:36.8}, props:autoProps({rushYd:36.8}) },
+
+  { id:'arodgers', name:'Aaron Rodgers', team:'PIT', pos:'QB', num:8, status:'Healthy', opp:'NO', oppRank:{pass:25},
+    news:'Healthy, no Week 7 concerns — Steelers play in Paris, France this week.',
+    season:{passYd:247.8, passTd:2.0}, props:autoProps({passYd:247.8, passTd:2.0}) },
+  { id:'dmetcalf', name:'DK Metcalf', team:'PIT', pos:'WR', num:4, status:'Healthy', opp:'NO', oppRank:{rec:25},
+    news:'Healthy, Steelers’ primary outside threat.', season:{rec:5.0, recYd:53.0, recTd:0.17}, props:autoProps({rec:5.0, recYd:53.0}) },
+  { id:'jwarren', name:'Jaylen Warren', team:'PIT', pos:'RB', num:30, status:'Healthy', opp:'NO', oppRank:{rush:16},
+    news:'Primary back, healthy, involved in both run and pass game.', season:{rushYd:76.7, rec:3.5, recYd:43.0}, props:autoProps({rushYd:76.7, recYd:43.0}) },
+  { id:'pfreiermuth', name:'Pat Freiermuth', team:'PIT', pos:'TE', num:88, status:'Healthy', opp:'NO', oppRank:{rec:25},
+    news:'Healthy, red-zone favorite with 4 TDs already this season.', season:{rec:3.5, recYd:30.0, recTd:0.67}, props:autoProps({rec:3.5, recYd:30.0}) },
+
+  { id:'cstroud', name:'C.J. Stroud', team:'HOU', pos:'QB', num:7, status:'Healthy', opp:'NYG', oppRank:{pass:5},
+    news:'Healthy, Texans have won 2 straight.', season:{passYd:285.7, passTd:1.5}, props:autoProps({passYd:285.7, passTd:1.5}) },
+
+  { id:'jtaylor', name:'Jonathan Taylor', team:'IND', pos:'RB', num:28, status:'Healthy', opp:'MIN', oppRank:{rush:5},
+    news:'No reported injury, workhorse back for Indianapolis.', season:{rushYd:82.0, rec:1.0, recYd:27.2}, props:autoProps({rushYd:82.0, recYd:27.2}) },
+  { id:'jdowns', name:'Josh Downs', team:'IND', pos:'WR', num:1, status:'Healthy', opp:'MIN', oppRank:{rec:3},
+    news:'Healthy slot receiver for the Colts.', season:{rec:4.0, recYd:48.2}, props:autoProps({rec:4.0, recYd:48.2}) },
+  { id:'twarren', name:'Tyler Warren', team:'IND', pos:'TE', num:84, status:'Healthy', opp:'MIN', oppRank:{rec:3},
+    news:'Rookie tight end building a role in the red zone.', season:{rec:3.0, recYd:14.8, recTd:0.33}, props:autoProps({rec:3.0, recYd:14.8}) },
+  { id:'djones2', name:'Daniel Jones', team:'IND', pos:'QB', num:17, status:'Healthy', opp:'MIN', oppRank:{pass:3},
+    news:'Confirmed Week 7 starter despite a recent statistical decline; faces the NFL’s best scoring defense.',
+    season:{passYd:215.0, passTd:0.67}, props:autoProps({passYd:215.0, passTd:0.67}) },
+
+  { id:'btuten', name:'Bhayshul Tuten', team:'JAX', pos:'RB', num:33, status:'Healthy', bye:true, opp:'BYE',
+    news:'Jacksonville is on its Week 7 bye.', season:{rushYd:64.7, rec:3.33, recYd:21.0}, props:[] },
+  { id:'pwashington', name:'Parker Washington', team:'JAX', pos:'WR', num:10, status:'Healthy', bye:true, opp:'BYE',
+    news:'Jacksonville is on its Week 7 bye.', season:{rec:3.83, recYd:58.7}, props:[] },
+  { id:'bstrange', name:'Brenton Strange', team:'JAX', pos:'TE', num:85, status:'Healthy', bye:true, opp:'BYE',
+    news:'Jacksonville is on its Week 7 bye.', season:{rec:4.2, recYd:47.0}, props:[] },
+  { id:'tlawrence', name:'Trevor Lawrence', team:'JAX', pos:'QB', num:16, status:'Healthy', bye:true, opp:'BYE',
+    news:'Jacksonville is on its Week 7 bye after a Week 6 loss to Houston.', season:{passYd:246.7, passTd:2.33}, props:[] },
+
+  { id:'cward', name:'Cam Ward', team:'TEN', pos:'QB', num:1, status:'Healthy', opp:'CLE', oppRank:{pass:8},
+    news:'Confirmed starter; Titans snapped a 5-game skid in Week 6.', season:{passYd:166.3, passTd:0.67}, props:autoProps({passYd:166.3, passTd:0.67}) },
+  { id:'tpollard', name:'Tony Pollard', team:'TEN', pos:'RB', num:20, status:'Probable', opp:'CLE', oppRank:{rush:17},
+    news:'Playing through a foot issue, hasn’t missed a game.', season:{rushYd:54.6, rec:1.6, recYd:4.8}, props:autoProps({rushYd:54.6}) },
+
+  { id:'bnix', name:'Bo Nix', team:'DEN', pos:'QB', num:10, status:'Healthy', opp:'ARI', oppRank:{pass:22},
+    news:'Healthy, Broncos have won 2 straight.', season:{passYd:174.8, passTd:1.0},
+    ngs:{airYards:4.6, aggressiveness:2.4}, props:autoProps({passYd:174.8, passTd:1.0}) },
+  { id:'rjharvey', name:'RJ Harvey', team:'DEN', pos:'RB', num:1, status:'Healthy', opp:'ARI', oppRank:{rush:16},
+    news:'Lead back in a committee with Dobbins/Badie.', season:{rushYd:13.5, rec:3.83, recYd:27.2}, props:autoProps({rushYd:13.5, recYd:27.2}) },
+
+  { id:'xworthy', name:'Xavier Worthy', team:'KC', pos:'WR', num:1, status:'Healthy', opp:'SEA', oppRank:{rec:1},
+    news:'Still working back from a shoulder dislocation but leads the Chiefs in targets.', season:{rec:3.5, recYd:34.3, recTd:0.17}, props:autoProps({rec:3.5, recYd:34.3}) },
+
+  { id:'jherbert', name:'Justin Herbert', team:'LAC', pos:'QB', num:10, status:'Healthy', bye:true, opp:'BYE',
+    news:'Chargers are on their Week 7 bye after an 0-6 start.', season:{passYd:190.2, passTd:0.83}, props:[] },
+  { id:'qjohnston', name:'Quentin Johnston', team:'LAC', pos:'WR', num:1, status:'Healthy', bye:true, opp:'BYE',
+    news:'Chargers are on their Week 7 bye.', season:{rec:1.75, recYd:27.0}, props:[] },
+  { id:'ohampton', name:'Omarion Hampton', team:'LAC', pos:'RB', num:28, status:'Healthy', bye:true, opp:'BYE',
+    news:'Chargers are on their Week 7 bye.', season:{rushYd:48.2}, props:[] },
+
+  { id:'kcousins', name:'Kirk Cousins', team:'LV', pos:'QB', num:8, status:'Healthy', opp:'LAR', oppRank:{pass:2},
+    news:'Confirmed starter over rookie Fernando Mendoza.', season:{passYd:254, passTd:2.4},
+    ngs:{airYards:8.9, aggressiveness:13.5, timeToThrow:3.28}, props:autoProps({passYd:254, passTd:2.4}) },
+  { id:'ajeanty', name:'Ashton Jeanty', team:'LV', pos:'RB', num:2, status:'Healthy', opp:'LAR', oppRank:{rush:16},
+    news:'No game designation, but has cooled off the last two weeks.', season:{rushYd:52.2}, props:autoProps({rushYd:52.2}) },
+  { id:'bbowers', name:'Brock Bowers', team:'LV', pos:'TE', num:89, status:'Healthy', opp:'LAR', oppRank:{rec:2},
+    news:'Leads the Raiders in receiving yards, healthy.', season:{recYd:52.0}, props:autoProps({recYd:52.0}) },
+
+  { id:'dprescott', name:'Dak Prescott', team:'DAL', pos:'QB', num:4, status:'Probable', opp:'PHI', oppRank:{pass:26},
+    news:'Playing through a rib bruise from Week 6, expected to start.', season:{passYd:273, passTd:1.67}, props:autoProps({passYd:273, passTd:1.67}) },
+  { id:'jwilliams', name:'Javonte Williams', team:'DAL', pos:'RB', num:33, status:'Healthy', opp:'PHI', oppRank:{rush:19},
+    news:'Co-leads the Cowboys backfield, healthy.', season:{rushYd:57.75, rec:3.75, recYd:19.25}, props:autoProps({rushYd:57.75, recYd:19.25}) },
+  { id:'jferguson', name:'Jake Ferguson', team:'DAL', pos:'TE', num:87, status:'Healthy', opp:'PHI', oppRank:{rec:26},
+    news:'Healthy, red-zone weapon with 3 TDs on the season.', season:{rec:3.0, recYd:20.75, recTd:0.75}, props:autoProps({rec:3.0, recYd:20.75}) },
+
+  { id:'mnabers', name:'Malik Nabers', team:'NYG', pos:'WR', num:1, status:'Healthy', opp:'HOU', oppRank:{rec:16},
+    news:'Giants’ clear WR1.', season:{rec:6.83, recYd:82.3}, props:autoProps({rec:6.83, recYd:82.3}) },
+
+  { id:'jhurts', name:'Jalen Hurts', team:'PHI', pos:'QB', num:1, status:'Healthy', opp:'DAL', oppRank:{pass:23},
+    news:'No injury designation; Eagles have dropped 4 straight.', season:{passYd:187, passTd:1.6}, props:autoProps({passYd:187, passTd:1.6}) },
+  { id:'dsmith', name:'DeVonta Smith', team:'PHI', pos:'WR', num:6, status:'Healthy', opp:'DAL', oppRank:{rec:23},
+    news:'Elevated to WR1 role, healthy.', season:{rec:6.33, recYd:78.3, recTd:0.33}, props:autoProps({rec:6.33, recYd:78.3}) },
+  { id:'dgoedert', name:'Dallas Goedert', team:'PHI', pos:'TE', num:88, status:'Healthy', opp:'DAL', oppRank:{rec:23},
+    news:'Healthy, reliable red-zone target.', season:{rec:3.67, recYd:39.7, recTd:0.67}, props:autoProps({rec:3.67, recYd:39.7}) },
+
+  { id:'mpenix', name:'Michael Penix Jr.', team:'ATL', pos:'QB', num:9, status:'Healthy', opp:'SF', oppRank:{pass:12},
+    news:'Healthy; Falcons host an undefeated 49ers team Sunday night.', season:{passYd:239.5, passTd:1.0},
+    ngs:{airYards:8.8}, props:autoProps({passYd:239.5, passTd:1.0}) },
+  { id:'dlondon', name:'Drake London', team:'ATL', pos:'WR', num:5, status:'Healthy', opp:'SF', oppRank:{rec:12},
+    news:'Falcons’ WR1, healthy.', season:{rec:5.0, recYd:92.5}, props:autoProps({rec:5.0, recYd:92.5}) },
+
+  { id:'byoung', name:'Bryce Young', team:'CAR', pos:'QB', num:9, status:'Healthy', opp:'TB', oppRank:{pass:19},
+    news:'Healthy, Panthers have won 2 straight and lead the NFC South.', season:{passYd:317, passTd:2.3}, props:autoProps({passYd:317, passTd:2.3}) },
+  { id:'tmcmillan', name:'Tetairoa McMillan', team:'CAR', pos:'WR', num:0, status:'Healthy', opp:'TB', oppRank:{rec:19},
+    news:'Rookie WR1, no injury designation.', season:{rec:6.5, recYd:96.25, recTd:0.5}, props:autoProps({rec:6.5, recYd:96.25}) },
+  { id:'jcoker', name:'Jalen Coker', team:'CAR', pos:'WR', num:19, status:'Healthy', opp:'TB', oppRank:{rec:19},
+    news:'Cleared a Week 3 quad injury, full practice participant since.', season:{rec:6.0, recYd:79.75, recTd:0.5}, props:autoProps({rec:6.0, recYd:79.75}) },
+
+  { id:'jbrissett', name:'Jacoby Brissett', team:'ARI', pos:'QB', num:7, status:'Healthy', opp:'DEN', oppRank:{pass:10},
+    news:'Cardinals’ starter since Kyler Murray’s release.', season:{passYd:221.3, passTd:1.5}, props:autoProps({passYd:221.3, passTd:1.5}) },
+  { id:'tmcbride', name:'Trey McBride', team:'ARI', pos:'TE', num:85, status:'Healthy', opp:'DEN', oppRank:{rec:10},
+    news:'League-leading tight end target share, healthy.', season:{rec:8.17, recYd:60.2, recTd:0.5}, props:autoProps({rec:8.17, recYd:60.2}) },
+
+  { id:'mstafford', name:'Matthew Stafford', team:'LAR', pos:'QB', num:9, status:'Healthy', opp:'LV', oppRank:{pass:24},
+    news:'Healthy, Rams coming off back-to-back losses.', season:{passYd:299, passTd:1.83}, props:autoProps({passYd:299, passTd:1.83}) },
+  { id:'pnacua', name:'Puka Nacua', team:'LAR', pos:'WR', num:17, status:'Healthy', opp:'LV', oppRank:{rec:24},
+    news:'Rams’ clear WR1, healthy.', season:{rec:6.17, recYd:69.5}, props:autoProps({rec:6.17, recYd:69.5}) },
+  { id:'kwilliams', name:'Kyren Williams', team:'LAR', pos:'RB', num:23, status:'Healthy', opp:'LV', oppRank:{rush:28},
+    news:'Rams’ lead back, healthy.', season:{rushYd:65.5}, props:autoProps({rushYd:65.5}) },
+
+  { id:'bpurdy', name:'Brock Purdy', team:'SF', pos:'QB', num:13, status:'Out', opp:'ATL', oppRank:{pass:28},
+    news:'Ruled out for Week 7 with a toe injury; backup starter not yet confirmed publicly.',
+    season:{passYd:243, passTd:2.33}, props:autoProps({passYd:243, passTd:2.33}) },
+
+  { id:'sdarnold', name:'Sam Darnold', team:'SEA', pos:'QB', num:14, status:'Healthy', opp:'KC', oppRank:{pass:15},
+    news:'Team has explicitly committed to Darnold as starter despite a recent interception spike.', season:{passYd:172.2, passTd:1.17}, props:autoProps({passYd:172.2, passTd:1.17}) },
+  { id:'jsnjigba', name:'Jaxon Smith-Njigba', team:'SEA', pos:'WR', num:11, status:'Healthy', opp:'KC', oppRank:{rec:15},
+    news:'Cleared a Week 5 ankle injury, leads Seattle in receiving.', season:{rec:6.17, recYd:97.2, recTd:1.17}, props:autoProps({rec:6.17, recYd:97.2}) },
+  { id:'ckupp', name:'Cooper Kupp', team:'SEA', pos:'WR', num:10, status:'Healthy', opp:'KC', oppRank:{rec:15},
+    news:'Diminished role in Seattle’s offense but healthy.', season:{rec:2.67, recYd:29.8, recTd:0.17}, props:autoProps({rec:2.67, recYd:29.8}) },
+
+  { id:'cwilliams2', name:'Caleb Williams', team:'CHI', pos:'QB', num:18, status:'Healthy', opp:'NE', oppRank:{pass:11},
+    news:'Confirmed Week 7 starter, back from a hamstring injury that cost him Weeks 3–5.', season:{passYd:237.3, passTd:1.0}, props:autoProps({passYd:237.3, passTd:1.0}) },
+  { id:'dswift', name:'D’Andre Swift', team:'CHI', pos:'RB', num:4, status:'Healthy', opp:'NE', oppRank:{rush:9},
+    news:'Bears’ lead back, healthy.', season:{rushYd:66.3, rec:3.0, recYd:23.3}, props:autoProps({rushYd:66.3, recYd:23.3}) },
+  { id:'rodunze', name:'Rome Odunze', team:'CHI', pos:'WR', num:15, status:'Healthy', opp:'NE', oppRank:{rec:11},
+    news:'Healthy, No. 2 receiving option.', season:{rec:3.3, recYd:45.3}, props:autoProps({rec:3.3, recYd:45.3}) },
+  { id:'lburden', name:'Luther Burden III', team:'CHI', pos:'WR', num:10, status:'Healthy', opp:'NE', oppRank:{rec:11},
+    news:'Rookie receiver, healthy, leads Bears WRs in targets.', season:{rec:5.2, recYd:60.2}, props:autoProps({rec:5.2, recYd:60.2}) },
+  { id:'ckmet', name:'Cole Kmet', team:'CHI', pos:'TE', num:85, status:'Healthy', opp:'NE', oppRank:{rec:11},
+    news:'Limited receiving role this season, healthy.', season:{rec:1.2, recYd:9.8}, props:autoProps({rec:1.2, recYd:9.8}) },
+
+  { id:'jgibbs', name:'Jahmyr Gibbs', team:'DET', pos:'RB', num:26, status:'Healthy', opp:'GB', oppRank:{rush:24},
+    news:'Healthy, Lions’ lead back coming off the Week 6 bye.', season:{rushYd:100.8, rec:5.4, recYd:48.6}, props:autoProps({rushYd:100.8, recYd:48.6}) },
+  { id:'jwilliams2', name:'Jameson Williams', team:'DET', pos:'WR', num:1, status:'Healthy', opp:'GB', oppRank:{rec:5},
+    news:'Healthy, deep threat for Jared Goff.', season:{rec:3.6, recYd:55.2, recTd:0.4}, props:autoProps({rec:3.6, recYd:55.2}) },
+  { id:'jgoff', name:'Jared Goff', team:'DET', pos:'QB', num:16, status:'Healthy', opp:'GB', oppRank:{pass:5},
+    news:'No injury designation all season; hasn’t thrown an interception yet in 2026.', season:{passYd:297, passTd:2.4}, props:autoProps({passYd:297, passTd:2.4}) },
+
+  { id:'cwatson2', name:'Christian Watson', team:'GB', pos:'WR', num:9, status:'Healthy', opp:'DET', oppRank:{rec:32},
+    news:'Leads the Packers in receiving, healthy.', season:{rec:4.8, recYd:89.7, recTd:1.0}, props:autoProps({rec:4.8, recYd:89.7}) },
+  { id:'mgolden', name:'Matthew Golden', team:'GB', pos:'WR', num:0, status:'Healthy', opp:'DET', oppRank:{rec:32},
+    news:'Rookie receiver, healthy, co-leads Packers WRs.', season:{rec:5.0, recYd:83.5}, props:autoProps({rec:5.0, recYd:83.5}) },
+  { id:'tkraft', name:'Tucker Kraft', team:'GB', pos:'TE', num:85, status:'Healthy', opp:'DET', oppRank:{rec:32},
+    news:'Healthy, steady target in the Green Bay offense.', season:{rec:4.2, recYd:41.5}, props:autoProps({rec:4.2, recYd:41.5}) },
+
+  { id:'ajones', name:'Aaron Jones Sr.', team:'MIN', pos:'RB', num:33, status:'Questionable', opp:'IND', oppRank:{rush:21},
+    news:'Managing a left knee injury from Week 5 but has finished every game since.', season:{rushYd:82.0, rec:2.4, recYd:14.4}, props:autoProps({rushYd:82.0, recYd:14.4}) },
+  { id:'thockenson', name:'T.J. Hockenson', team:'MIN', pos:'TE', num:87, status:'Questionable', opp:'IND', oppRank:{rec:21},
+    news:'Listed questionable on the depth chart; recent production suggests he’s trending to play.', season:{rec:4.6, recYd:40.4, recTd:0.2}, props:autoProps({rec:4.6, recYd:40.4}) },
+  { id:'jaddison', name:'Jordan Addison', team:'MIN', pos:'WR', num:3, status:'Questionable', opp:'IND', oppRank:{rec:21},
+    news:'Listed questionable on the depth chart.', season:{rec:2.2, recYd:40.8, recTd:0.2}, props:autoProps({rec:2.2, recYd:40.8}) },
+  { id:'kmurray', name:'Kyler Murray', team:'MIN', pos:'QB', num:1, status:'Healthy', opp:'IND', oppRank:{pass:21},
+    news:'Starting QB for an undefeated Vikings team, coming off the bye healthy.', season:{passYd:165.5, passTd:0.5}, props:autoProps({passYd:165.5, passTd:0.5}) },
+];
+
+// ---------------------------------------------------------------------------
+// Team profiles — record, streak, division/conference, defensive pressure
+// stats, and each team's current Week 7 opponent. Researched the same way
+// as the player data above (ESPN/NFL.com/TeamRankings/NGS team pages).
+// ---------------------------------------------------------------------------
+const TEAMS = [
+  // AFC East
+  { abbr:'BUF', name:'Buffalo Bills', conf:'AFC', div:'East', record:'5-1', placeText:'1st in AFC East', streak:'Won 2 straight', bye:true, nextOpp:null,
+    defense:{sacks:10, blitzRate:null, pressureRate:null, passRank:31, passYdsAllowed:285.8, rushRank:13, rushYdsAllowed:101} },
+  { abbr:'MIA', name:'Miami Dolphins', conf:'AFC', div:'East', record:'0-5', placeText:'4th in AFC East', streak:'Lost 5 straight', nextOpp:'NYJ',
+    defense:{sacks:4, blitzRate:null, pressureRate:null, passRank:15, passYdsAllowed:219.2, rushRank:16, rushYdsAllowed:110.6} },
+  { abbr:'NE', name:'New England Patriots', conf:'AFC', div:'East', record:'4-2', placeText:'2nd in AFC East', streak:'Won 3 straight', nextOpp:'CHI',
+    defense:{sacks:14, blitzRate:null, pressureRate:null, passRank:11, passYdsAllowed:209, rushRank:9, rushYdsAllowed:91.8} },
+  { abbr:'NYJ', name:'New York Jets', conf:'AFC', div:'East', record:'2-4', placeText:'3rd in AFC East', streak:'Lost 1 straight', nextOpp:'MIA',
+    defense:{sacks:17, blitzRate:null, pressureRate:null, passRank:4, passYdsAllowed:185, rushRank:23, rushYdsAllowed:123} },
+  // AFC North
+  { abbr:'BAL', name:'Baltimore Ravens', conf:'AFC', div:'North', record:'4-2', placeText:'1st in AFC North (tie)', streak:'Lost 1 straight', nextOpp:'CIN',
+    defense:{sacks:10, blitzRate:31.4, pressureRate:43.8, passRank:13, passYdsAllowed:210.3, rushRank:11, rushYdsAllowed:100.5} },
+  { abbr:'CIN', name:'Cincinnati Bengals', conf:'AFC', div:'North', record:'3-2', placeText:'4th in AFC North', streak:'Won 1 straight', nextOpp:'BAL',
+    defense:{sacks:17, blitzRate:16.1, pressureRate:40.2, passRank:18, passYdsAllowed:221.2, rushRank:23, rushYdsAllowed:123} },
+  { abbr:'CLE', name:'Cleveland Browns', conf:'AFC', div:'North', record:'4-2', placeText:'1st in AFC North (tiebreak)', streak:'Won 1 straight', nextOpp:'TEN',
+    defense:{sacks:19, blitzRate:25.3, pressureRate:null, passRank:8, passYdsAllowed:205.2, rushRank:17, rushYdsAllowed:112.3} },
+  { abbr:'PIT', name:'Pittsburgh Steelers', conf:'AFC', div:'North', record:'4-2', placeText:'1st in AFC North (tie)', streak:'Won 2 straight', nextOpp:'NO',
+    defense:{sacks:16, blitzRate:26.9, pressureRate:null, passRank:null, passYdsAllowed:222.0, rushRank:null, rushYdsAllowed:103.2} },
+  // AFC South
+  { abbr:'HOU', name:'Houston Texans', conf:'AFC', div:'South', record:'2-4', placeText:'2nd in AFC South', streak:'Won 2 straight', nextOpp:'NYG',
+    defense:{sacks:18, blitzRate:null, pressureRate:38.9, passRank:null, passYdsAllowed:null, rushRank:3, rushYdsAllowed:83} },
+  { abbr:'IND', name:'Indianapolis Colts', conf:'AFC', div:'South', record:'2-4', placeText:'3rd in AFC South', streak:'Lost 1 straight', nextOpp:'MIN',
+    defense:{sacks:15, blitzRate:null, pressureRate:29.4, passRank:21, passYdsAllowed:228.7, rushRank:21, rushYdsAllowed:122.5} },
+  { abbr:'JAX', name:'Jacksonville Jaguars', conf:'AFC', div:'South', record:'4-2', placeText:'1st in AFC South', streak:'Lost 1 straight', bye:true, nextOpp:null,
+    defense:{sacks:11, blitzRate:27, pressureRate:39, passRank:null, passYdsAllowed:null, rushRank:1, rushYdsAllowed:72.2} },
+  { abbr:'TEN', name:'Tennessee Titans', conf:'AFC', div:'South', record:'1-5', placeText:'4th in AFC South', streak:'Won 1 straight', nextOpp:'CLE',
+    defense:{sacks:10, blitzRate:22, pressureRate:null, passRank:17, passYdsAllowed:220.5, rushRank:21, rushYdsAllowed:122.5} },
+  // AFC West
+  { abbr:'DEN', name:'Denver Broncos', conf:'AFC', div:'West', record:'4-2', placeText:'2nd in AFC West', streak:'Won 2 straight', nextOpp:'ARI',
+    defense:{sacks:18, blitzRate:null, pressureRate:null, passRank:10, passYdsAllowed:208.5, rushRank:31, rushYdsAllowed:139.8} },
+  { abbr:'KC', name:'Kansas City Chiefs', conf:'AFC', div:'West', record:'5-0', placeText:'1st in AFC West', streak:'Won 5 straight', nextOpp:'SEA',
+    defense:{sacks:4, blitzRate:null, pressureRate:null, passRank:15, passYdsAllowed:217.2, rushRank:6, rushYdsAllowed:88.8} },
+  { abbr:'LAC', name:'Los Angeles Chargers', conf:'AFC', div:'West', record:'0-6', placeText:'4th in AFC West', streak:'Lost 6 straight', bye:true, nextOpp:null,
+    defense:{sacks:11, blitzRate:null, pressureRate:null, passRank:9, passYdsAllowed:206.2, rushRank:21, rushYdsAllowed:118.6} },
+  { abbr:'LV', name:'Las Vegas Raiders', conf:'AFC', div:'West', record:'3-3', placeText:'3rd in AFC West', streak:'Lost 3 straight', nextOpp:'LAR',
+    defense:{sacks:10, blitzRate:null, pressureRate:null, passRank:24, passYdsAllowed:237.3, rushRank:28, rushYdsAllowed:134.3} },
+  // NFC East
+  { abbr:'DAL', name:'Dallas Cowboys', conf:'NFC', div:'East', record:'2-4', placeText:'3rd in NFC East (tie)', streak:'Lost 2 straight', nextOpp:'PHI',
+    defense:{sacks:8, blitzRate:null, pressureRate:null, passRank:23, passYdsAllowed:232.7, rushRank:32, rushYdsAllowed:149.8} },
+  { abbr:'NYG', name:'New York Giants', conf:'NFC', div:'East', record:'3-2-1', placeText:'1st in NFC East', streak:'1-1 last two', nextOpp:'HOU',
+    defense:{sacks:18, blitzRate:null, pressureRate:null, passRank:5, passYdsAllowed:190.2, rushRank:29, rushYdsAllowed:135.5} },
+  { abbr:'PHI', name:'Philadelphia Eagles', conf:'NFC', div:'East', record:'2-4', placeText:'3rd in NFC East (tie)', streak:'Lost 4 straight', nextOpp:'DAL',
+    defense:{sacks:null, blitzRate:null, pressureRate:null, passRank:26, passYdsAllowed:244.5, rushRank:19, rushYdsAllowed:119.3} },
+  { abbr:'WAS', name:'Washington Commanders', conf:'NFC', div:'East', record:'1-3-1', placeText:'4th in NFC East', streak:'Winless in 2', bye:true, nextOpp:null,
+    defense:{sacks:10, blitzRate:null, pressureRate:null, passRank:29, passYdsAllowed:254, rushRank:11, rushYdsAllowed:100.5} },
+  // NFC North
+  { abbr:'CHI', name:'Chicago Bears', conf:'NFC', div:'North', record:'4-2', placeText:'2nd in NFC North (tie)', streak:'Won 1 straight', nextOpp:'NE',
+    defense:{sacks:17, blitzRate:null, pressureRate:null, passRank:14, passYdsAllowed:211.8, rushRank:8, rushYdsAllowed:90.5} },
+  { abbr:'DET', name:'Detroit Lions', conf:'NFC', div:'North', record:'3-2', placeText:'4th in NFC North (tie)', streak:'Won 1 straight', nextOpp:'GB',
+    defense:{sacks:20, blitzRate:null, pressureRate:null, passRank:32, passYdsAllowed:297.4, rushRank:15, rushYdsAllowed:107} },
+  { abbr:'GB', name:'Green Bay Packers', conf:'NFC', div:'North', record:'4-2', placeText:'2nd in NFC North (tie)', streak:'Won 2 straight', nextOpp:'DET',
+    defense:{sacks:14, blitzRate:null, pressureRate:null, passRank:5, passYdsAllowed:181.0, rushRank:24, rushYdsAllowed:127.6} },
+  { abbr:'MIN', name:'Minnesota Vikings', conf:'NFC', div:'North', record:'5-0', placeText:'1st in NFC North', streak:'Won 5 straight', nextOpp:'IND',
+    defense:{sacks:17, blitzRate:null, pressureRate:null, passRank:3, passYdsAllowed:173.2, rushRank:5, rushYdsAllowed:86.6} },
+  // NFC South
+  { abbr:'ATL', name:'Atlanta Falcons', conf:'NFC', div:'South', record:'2-4', placeText:'2nd in NFC South', streak:'Lost 2 straight', nextOpp:'SF',
+    defense:{sacks:16, blitzRate:null, pressureRate:22.9, passRank:28, passYdsAllowed:252, rushRank:4, rushYdsAllowed:83.2} },
+  { abbr:'CAR', name:'Carolina Panthers', conf:'NFC', div:'South', record:'3-2', placeText:'1st in NFC South', streak:'Won 2 straight', nextOpp:'TB',
+    defense:{sacks:9, blitzRate:36.6, pressureRate:22.1, passRank:19, passYdsAllowed:222, rushRank:27, rushYdsAllowed:132.2} },
+  { abbr:'NO', name:'New Orleans Saints', conf:'NFC', div:'South', record:'2-4', placeText:'3rd in NFC South', streak:'Won 1 straight', nextOpp:'PIT',
+    defense:{sacks:10, blitzRate:35.1, pressureRate:16.2, passRank:25, passYdsAllowed:239.7, rushRank:null, rushYdsAllowed:null} },
+  { abbr:'TB', name:'Tampa Bay Buccaneers', conf:'NFC', div:'South', record:'1-5', placeText:'4th in NFC South', streak:'Lost 1 straight', nextOpp:'CAR',
+    defense:{sacks:11, blitzRate:41.3, pressureRate:17.7, passRank:19, passYdsAllowed:226.6, rushRank:2, rushYdsAllowed:72.8} },
+  // NFC West
+  { abbr:'ARI', name:'Arizona Cardinals', conf:'NFC', div:'West', record:'2-4', placeText:'3rd in NFC West', streak:'Won 1 straight', nextOpp:'DEN',
+    defense:{sacks:12, blitzRate:null, pressureRate:null, passRank:22, passYdsAllowed:229.7, rushRank:null, rushYdsAllowed:null} },
+  { abbr:'LAR', name:'Los Angeles Rams', conf:'NFC', div:'West', record:'2-4', placeText:'4th in NFC West', streak:'Lost 2 straight', nextOpp:'LV',
+    defense:{sacks:10, blitzRate:null, pressureRate:null, passRank:2, passYdsAllowed:167, rushRank:null, rushYdsAllowed:null} },
+  { abbr:'SF', name:'San Francisco 49ers', conf:'NFC', div:'West', record:'6-0', placeText:'1st in NFC West', streak:'Won 6 straight', nextOpp:'ATL',
+    defense:{sacks:11, blitzRate:null, pressureRate:null, passRank:12, passYdsAllowed:209.8, rushRank:null, rushYdsAllowed:null} },
+  { abbr:'SEA', name:'Seattle Seahawks', conf:'NFC', div:'West', record:'3-3', placeText:'2nd in NFC West', streak:'Lost 1 straight', nextOpp:'KC',
+    defense:{sacks:16, blitzRate:null, pressureRate:null, passRank:1, passYdsAllowed:141.3, rushRank:null, rushYdsAllowed:null} },
+];
+
+function mean(arr){ return arr.reduce((a,b)=>a+b,0)/arr.length; }
+function stdev(arr){
+  const m = mean(arr);
+  const v = mean(arr.map(x => (x-m)*(x-m)));
+  return Math.sqrt(v) || (m*0.18 || 1); // floor so a dead-flat sample still has spread
+}
+// Abramowitz-Stegun normal CDF approximation
+function normalCdf(z){
+  const t = 1/(1+0.2316419*Math.abs(z));
+  const d = 0.3989423*Math.exp(-z*z/2);
+  let p = d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));
+  if(z>0) p = 1-p;
+  return p;
+}
+
+function computeProp(player, prop){
+  const seasonAvg = player.season[prop.key];
+  let baseline, sdBase;
+  if(player.log && player.log.length){
+    const vals = player.log.map(g => g[prop.key]).filter(v => typeof v === 'number');
+    const last3 = vals.slice(-3);
+    const lastGame = vals[vals.length-1];
+    baseline = mean(last3)*0.5 + seasonAvg*0.3 + lastGame*0.2;
+    sdBase = stdev(vals) * 0.9;
+  } else {
+    baseline = seasonAvg; // lite-tier player: no game log on file, season pace only
+    sdBase = seasonAvg * 0.22; // generic game-to-game volatility assumption, no log to measure it from
+  }
+
+  const rankKey = POS_RANK_KEY[player.pos];
+  const oppRank = (player.oppRank && player.oppRank[rankKey]) || 16;
+  const matchupPull = ((oppRank - 16.5) / 16.5) * 0.12; // +worse defense rank(higher#) => easier matchup
+  const matchupAdj = baseline * matchupPull;
+
+  const availability = STATUS_FACTOR[player.status];
+  const projected = (baseline + matchupAdj) * availability;
+
+  const sd = Math.max(sdBase, seasonAvg*0.1, 0.6);
+  const z = (projected - prop.line) / sd;
+  const pOver = Math.max(0.03, Math.min(0.97, normalCdf(z)));
+
+  return { projected, pOver, matchupPull, oppRank, availability, sd };
+}
+
+function confTier(p){
+  const dist = Math.abs(p-0.5);
+  if(dist >= 0.17) return 'high';
+  if(dist >= 0.07) return 'mid';
+  return 'low';
+}
+
+function fmt(n, decimals){ return n.toLocaleString(undefined,{minimumFractionDigits:decimals, maximumFractionDigits:decimals}); }
+
+function statusClass(s){ return 'status-'+s.toLowerCase(); }
+
+function renderNgsPanel(player){
+  const ngs = player.ngs;
+  if(!ngs || (!ngs.directional && !ngs.airYards)){
+    return `<div class="tendency-unavailable">Next Gen Stats doesn't publish a per-player field-side / depth-of-target breakdown on its public pages — that chart only exists behind NFL's paid data products. No number is shown here rather than an invented one.</div>`;
+  }
+  let rows = '';
+  if(ngs.directional){
+    const d = ngs.directional;
+    rows += `
+      <div class="tendency-row">
+        <div class="t-lbl">Field side (share of attempts)</div>
+        <div class="tendency-bar">
+          <div class="seg" style="width:${d.left}%; background:var(--chart-1)">Left ${d.left}%</div>
+          <div class="seg" style="width:${d.middle}%; background:var(--chart-2)">Middle ${d.middle}%</div>
+          <div class="seg" style="width:${d.right}%; background:var(--chart-3)">Right ${d.right}%</div>
+        </div>
+      </div>`;
+  }
+  if(ngs.depth){
+    const dp = ngs.depth;
+    rows += `
+      <div class="tendency-row">
+        <div class="t-lbl">Depth of target (share of attempts)</div>
+        <div class="tendency-bar">
+          <div class="seg" style="width:${dp.short}%; background:var(--chart-1)">Short ${dp.short}%</div>
+          <div class="seg" style="width:${dp.intermediate}%; background:var(--chart-2)">Mid ${dp.intermediate}%</div>
+          <div class="seg" style="width:${dp.deep}%; background:var(--chart-3)">Deep ${dp.deep}%</div>
+        </div>
+      </div>`;
+  }
+  if(!rows){
+    rows = `<div class="stat-tiles" style="margin-bottom:0">
+      ${ngs.airYards!=null ? `<div class="stat-tile"><div class="lbl">Avg. Intended Air Yards</div><div class="big">${fmt(ngs.airYards,1)}</div></div>` : ''}
+      ${ngs.aggressiveness!=null ? `<div class="stat-tile"><div class="lbl">Aggressiveness</div><div class="big">${fmt(ngs.aggressiveness,1)}%</div></div>` : ''}
+      ${ngs.timeToThrow!=null ? `<div class="stat-tile"><div class="lbl">Time to Throw</div><div class="big">${fmt(ngs.timeToThrow,2)}s</div></div>` : ''}
+    </div>
+    <p class="tendency-note">NGS doesn't publish a field-side/depth-of-target split for this QB — these are the real aggregate NGS numbers that are public.</p>`;
+  }
+  return `<h3 class="section-lbl">Passing tendencies (NFL Next Gen Stats)</h3><div class="tendency-wrap">${rows}</div>`;
+}
+
+function renderPlayer(id){
+  const player = PLAYERS.find(p => p.id === id);
+  const results = document.getElementById('results');
+  if(!player){ results.innerHTML = ''; return; }
+
+  const hasEstimated = player.props.some(p => p.estimated);
+  const propsHtml = player.props.map(prop => {
+    const c = computeProp(player, prop);
+    const isOut = player.status === 'Out';
+    const pOverPct = Math.round(c.pOver*100);
+    const pUnderPct = 100 - pOverPct;
+    const pick = c.pOver >= 0.5 ? 'over' : 'under';
+    const tier = confTier(c.pOver);
+    const matchupLabel = c.matchupPull > 0.015 ? `Soft matchup (opp #${c.oppRank} vs ${player.pos})`
+                        : c.matchupPull < -0.015 ? `Tough matchup (opp #${c.oppRank} vs ${player.pos})`
+                        : `Neutral matchup (opp #${c.oppRank} vs ${player.pos})`;
+    const matchupClass = c.matchupPull > 0.015 ? 'pos' : c.matchupPull < -0.015 ? 'neg' : '';
+    const availLabel = player.status === 'Healthy' ? 'Full workload expected'
+                      : player.status === 'Out' ? 'Ruled out — not projected'
+                      : `${player.status} — snap share discounted`;
+    const availClass = player.status === 'Healthy' ? 'pos' : player.status === 'Out' ? 'neg' : '';
+    const lineLabel = (prop.estimated ? '~' : '') + fmt(prop.line,1);
+
+    return `
+      <div class="prop-card">
+        <div class="prop-top">
+          <div class="prop-name">${prop.label} <span class="unit">· ${prop.unit}</span></div>
+          <div class="conf-pill conf-${tier}">${tier} conf</div>
+        </div>
+        <div class="prop-numbers">
+          <div class="proj">${isOut ? '—' : fmt(c.projected,1)}<span class="vs">proj</span></div>
+          <div class="line-val">line <span class="${prop.estimated?'est-flag':''}">${lineLabel}</span></div>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill ${pick==='over'?'over-fill':'under-fill'}" style="width:${isOut?0:pOverPct}%"></div>
+        </div>
+        <div class="prob-row">
+          <span class="side">U ${isOut?'—':pUnderPct+'%'}</span>
+          <span class="pick ${pick}">${isOut?'—':'<b>'+(pick==='over'?'OVER':'UNDER')+' '+(pick==='over'?pOverPct:pUnderPct)+'%</b>'}</span>
+          <span class="side">O ${isOut?'—':pOverPct+'%'}</span>
+        </div>
+        <div class="factors">
+          <span class="factor ${matchupClass}">${matchupLabel}</span>
+          <span class="factor ${availClass}">${availLabel}</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  const hasLog = player.log && player.log.length > 0;
+  let statKeys = [], logCols = [], logRows = '';
+  if(hasLog){
+    statKeys = Object.keys(player.log[0]).filter(k => k !== 'wk' && k !== 'opp');
+    logCols = statKeys.map(k => STAT_LABELS[k] || k);
+    logRows = player.log.map(g => {
+      const cells = statKeys.map(k => `<td>${typeof g[k]==='number' ? fmt(g[k], 0) : '—'}</td>`).join('');
+      return `<tr><td>Wk ${g.wk} vs ${g.opp}</td>${cells}</tr>`;
+    }).join('');
+  }
+  const seasonKeys = Object.keys(player.season);
+  const seasonCols = seasonKeys.map(k => STAT_LABELS[k] || k);
+  const seasonRow = `<tr><td>2026 season avg/gm</td>${seasonKeys.map(k=>`<td>${fmt(player.season[k], k==='rec'?1:(Number.isInteger(player.season[k])?0:1))}</td>`).join('')}</tr>`;
+
+  results.innerHTML = `
+    <div class="player-card">
+      <div class="player-id">
+        <div class="player-num">${player.num}</div>
+        <div class="player-meta">
+          <h2>${player.name}</h2>
+          <div class="sub">
+            <span>${player.team} · ${player.pos}</span>
+            <span class="status-badge ${statusClass(player.status)}">${player.status}</span>
+          </div>
+        </div>
+      </div>
+      <div class="next-matchup">
+        <div class="lbl">Week 7</div>
+        <div class="val">${player.bye ? 'BYE WEEK' : 'vs ' + player.opp}</div>
+        <div class="rank">${player.bye ? '&nbsp;' : 'Opp ranks #' + ((player.oppRank && player.oppRank[POS_RANK_KEY[player.pos]])||'—') + ' vs ' + player.pos}</div>
+        ${(!player.bye && TEAMS.find(t=>t.abbr===player.opp)) ? `<button class="opp-link" data-team="${player.opp}">${player.opp} defense &amp; history →</button>` : ''}
+      </div>
+      <div class="news-line">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a8 8 0 0 1 16 0v6a2 2 0 0 1-2 2h-1a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1h2M4 17v-6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2"/></svg>
+        <span>${player.news}</span>
+      </div>
+    </div>
+
+    <h3 class="section-lbl">Prop projections</h3>
+    ${player.bye
+      ? `<div class="bye-note"><b>${player.team} don't play in Week 7.</b> There's no line to project against — the grid below is skipped until their next kickoff. Season-pace numbers and the last game log are still shown for reference.</div>`
+      : `<div class="prop-grid">${propsHtml}</div>${hasEstimated ? `<p class="legend">~ line estimated from recent market pace — a firm Week 7 number wasn't posted yet at research time</p>` : ''}`
+    }
+
+    ${player.pos === 'QB' ? renderNgsPanel(player) : ''}
+
+    <h3 class="section-lbl">${hasLog ? 'Last 5 games' : 'Season snapshot'}</h3>
+    ${!hasLog ? `<p class="legend" style="margin-top:-4px">No game-by-game log on file for this player yet — projections above use season pace only, not recent-form weighting.</p>` : ''}
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Game</th>${(hasLog?logCols:seasonCols).map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+          <tbody>${hasLog ? logRows : seasonRow}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// ---------- team profile ----------
+function streakClass(streak){ return streak && streak.toLowerCase().startsWith('won') ? 'win' : 'loss'; }
+
+function renderTeam(abbr){
+  const team = TEAMS.find(t => t.abbr === abbr);
+  const results = document.getElementById('results');
+  if(!team){ results.innerHTML = ''; return; }
+  const d = team.defense;
+  const roster = PLAYERS.filter(p => p.team === abbr);
+
+  results.innerHTML = `
+    <div class="team-card">
+      <div class="team-id">
+        <h2>${team.name}</h2>
+        <div class="sub">
+          <span>${team.conf} ${team.div}${team.placeText ? ' · ' + team.placeText : ''}</span>
+          <span class="streak-badge ${streakClass(team.streak)}">${team.streak}</span>
+        </div>
+      </div>
+      <div class="next-matchup">
+        <div class="lbl">Record</div>
+        <div class="val">${team.record}</div>
+        <div class="rank">${team.bye ? 'BYE in Week 7' : 'Week 7: vs ' + team.nextOpp}</div>
+      </div>
+    </div>
+
+    <h3 class="section-lbl">Defense this season</h3>
+    <div class="stat-tiles">
+      <div class="stat-tile"><div class="lbl">Sacks</div><div class="big">${d.sacks ?? '—'}</div></div>
+      <div class="stat-tile"><div class="lbl">Blitz Rate</div><div class="big">${d.blitzRate!=null ? d.blitzRate+'%' : '—'}</div></div>
+      <div class="stat-tile"><div class="lbl">Pressure Rate</div><div class="big">${d.pressureRate!=null ? d.pressureRate+'%' : '—'}</div></div>
+      <div class="stat-tile"><div class="lbl">Pass Yds Allowed</div><div class="big">${d.passYdsAllowed ?? '—'}</div><div class="rank">${d.passRank ? '#'+d.passRank+' in NFL' : ''}</div></div>
+      <div class="stat-tile"><div class="lbl">Rush Yds Allowed</div><div class="big">${d.rushYdsAllowed ?? '—'}</div><div class="rank">${d.rushRank ? '#'+d.rushRank+' in NFL' : ''}</div></div>
+    </div>
+    ${(d.blitzRate==null || d.pressureRate==null) ? `<p class="legend" style="margin-top:-18px">Blitz/pressure rate is NFL Next Gen Stats data — not every team's figure was confirmed via public pages at research time.</p>` : ''}
+
+    <h3 class="section-lbl">Players on this page</h3>
+    ${roster.length ? `<div class="roster-chips">${roster.map(p => `<button class="roster-chip" data-type="player" data-id="${p.id}"><span class="p">${p.pos}</span> ${p.name}</button>`).join('')}</div>` : `<p class="legend" style="margin-top:0">No players from ${team.abbr} are loaded individually yet — search by name if you're after someone specific.</p>`}
+  `;
+}
+
+// ---------- search (players + teams) ----------
+const input = document.getElementById('searchInput');
+const suggestBox = document.getElementById('suggestBox');
+let activeIdx = -1;
+let currentMatches = [];
+
+function renderSuggestions(query){
+  const q = query.trim().toLowerCase();
+  if(!q){ currentMatches = []; }
+  else {
+    const playerMatches = PLAYERS.filter(p =>
+      p.name.toLowerCase().includes(q) || p.team.toLowerCase().includes(q) || p.pos.toLowerCase() === q
+    ).map(p => ({type:'player', id:p.id, label:p.name, tag:p.pos, sub:p.team}));
+    const teamMatches = TEAMS.filter(t =>
+      t.name.toLowerCase().includes(q) || t.abbr.toLowerCase().includes(q)
+    ).map(t => ({type:'team', id:t.abbr, label:t.name, tag:'TEAM', sub:t.abbr}));
+    currentMatches = [...teamMatches, ...playerMatches].slice(0,8);
+  }
+  activeIdx = -1;
+
+  if(!currentMatches.length){ suggestBox.hidden = true; suggestBox.innerHTML=''; return; }
+  suggestBox.hidden = false;
+  suggestBox.innerHTML = currentMatches.map((m,i) => `
+    <button data-type="${m.type}" data-id="${m.id}" data-idx="${i}">
+      <span class="pos${m.type==='team'?' team-tag':''}">${m.tag}</span>
+      <span class="name">${m.label}</span>
+      <span class="team">${m.sub}</span>
+    </button>`).join('');
+}
+
+input.addEventListener('input', e => renderSuggestions(e.target.value));
+input.addEventListener('focus', e => { if(e.target.value) renderSuggestions(e.target.value); });
+input.addEventListener('keydown', e => {
+  if(!currentMatches.length) return;
+  if(e.key === 'ArrowDown'){ e.preventDefault(); activeIdx = Math.min(activeIdx+1, currentMatches.length-1); updateActive(); }
+  else if(e.key === 'ArrowUp'){ e.preventDefault(); activeIdx = Math.max(activeIdx-1, 0); updateActive(); }
+  else if(e.key === 'Enter'){
+    const pick = currentMatches[activeIdx] || currentMatches[0];
+    if(pick) selectItem(pick.type, pick.id);
+  } else if(e.key === 'Escape'){ suggestBox.hidden = true; }
+});
+function updateActive(){
+  [...suggestBox.children].forEach((el,i) => el.classList.toggle('active', i===activeIdx));
+}
+suggestBox.addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if(btn) selectItem(btn.dataset.type, btn.dataset.id);
+});
+document.querySelectorAll('.chip').forEach(btn => {
+  btn.addEventListener('click', () => selectItem(btn.dataset.type, btn.dataset.id));
+});
+document.addEventListener('click', e => {
+  if(!e.target.closest('.search-row')) suggestBox.hidden = true;
+  const oppBtn = e.target.closest('.opp-link');
+  if(oppBtn) selectItem('team', oppBtn.dataset.team);
+  const rosterBtn = e.target.closest('.roster-chip');
+  if(rosterBtn) selectItem(rosterBtn.dataset.type, rosterBtn.dataset.id);
+});
+
+function selectItem(type, id){
+  suggestBox.hidden = true;
+  if(type === 'team'){
+    const team = TEAMS.find(t => t.abbr === id);
+    input.value = team ? team.name : '';
+    renderTeam(id);
+  } else {
+    const player = PLAYERS.find(p => p.id === id);
+    input.value = player ? player.name : '';
+    renderPlayer(id);
+  }
+}
+
+document.getElementById('asofDate').textContent = ASOF.toLocaleString(undefined,{
+  month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit'
+});
+
+// Open with a sample player so the page shows real output at rest
+selectItem('player', 'jjefferson');
+</script>
