@@ -90,7 +90,8 @@
     padding-bottom:18px; margin-bottom:22px;
     flex-wrap:wrap;
   }
-  .brand{ display:flex; align-items:baseline; gap:12px; }
+  .brand{ display:flex; align-items:baseline; gap:12px; cursor:pointer; }
+  .brand:focus-visible{ outline:2px solid var(--accent); outline-offset:4px; border-radius:4px; }
   .brand .mark{
     font-family:var(--font-display); font-weight:800; font-size:14px;
     letter-spacing:.14em; color:var(--accent-ink); background:var(--accent);
@@ -404,6 +405,40 @@
   .roster-chip .p{ color:var(--ink-faint); }
   .roster-chip:hover{ border-color:var(--accent); color:var(--accent); }
 
+  /* ---------- Home: top props leaderboard ---------- */
+  .lb-intro{ color:var(--ink-dim); font-size:14px; margin:0 0 18px; max-width:62ch; line-height:1.6; }
+  .leaderboard{
+    background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    overflow:hidden; box-shadow:var(--shadow); margin-bottom:28px;
+  }
+  .lb-row{
+    display:flex; align-items:center; gap:16px; padding:14px 20px;
+    border-bottom:1px solid var(--line); cursor:pointer;
+  }
+  .lb-row:last-child{ border-bottom:0; }
+  .lb-row:hover{ background:var(--surface-raised); }
+  .lb-rank{
+    font-family:var(--font-display); font-weight:700; font-size:22px; color:var(--ink-faint);
+    width:28px; flex:none; text-align:center;
+  }
+  .lb-row:nth-child(-n+3) .lb-rank{ color:var(--accent); }
+  .lb-who{ flex:1 1 auto; min-width:0; }
+  .lb-who .name{ font-weight:600; font-size:14.5px; }
+  .lb-who .meta{ font-family:var(--font-mono); font-size:11.5px; color:var(--ink-faint); margin-top:1px; }
+  .lb-prop{ flex:1 1 auto; min-width:0; text-align:left; }
+  .lb-prop .label{ font-size:13px; color:var(--ink-dim); }
+  .lb-prop .nums{ font-family:var(--font-mono); font-size:12px; color:var(--ink-faint); margin-top:1px; font-variant-numeric:tabular-nums; }
+  .lb-pick{ flex:none; text-align:right; min-width:92px; }
+  .lb-pick .pct{ font-family:var(--font-display); font-weight:700; font-size:22px; line-height:1; }
+  .lb-pick .dir{ font-family:var(--font-mono); font-size:10.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; margin-top:2px; }
+  .lb-pick.over .pct, .lb-pick.over .dir{ color:var(--good); }
+  .lb-pick.under .pct, .lb-pick.under .dir{ color:var(--bad); }
+
+  @media (max-width:640px){
+    .lb-row{ flex-wrap:wrap; }
+    .lb-prop{ flex-basis:100%; order:3; margin-left:44px; }
+  }
+
   @media (max-width:640px){
     .brand h1{ font-size:26px; }
     .next-matchup{ text-align:left; }
@@ -414,7 +449,7 @@
 <div class="wrap">
 
   <header class="top">
-    <div class="brand">
+    <div class="brand" id="brandHome" role="button" tabindex="0">
       <span class="mark">NFL</span>
       <div>
         <h1>Gridiron Edge</h1>
@@ -1175,6 +1210,52 @@ function renderPlayer(id){
   `;
 }
 
+// ---------- home: top props leaderboard ----------
+function renderHome(){
+  const results = document.getElementById('results');
+  const ranked = [];
+
+  PLAYERS.forEach(player => {
+    if(player.bye || player.status === 'Out') return;
+    (player.props || []).forEach(prop => {
+      const c = computeProp(player, prop);
+      const pick = c.pOver >= 0.5 ? 'over' : 'under';
+      const pct = pick === 'over' ? c.pOver : 1 - c.pOver;
+      ranked.push({ player, prop, c, pick, pct });
+    });
+  });
+
+  ranked.sort((a,b) => b.pct - a.pct);
+  const top10 = ranked.slice(0, 10);
+
+  const rows = top10.map((r,i) => {
+    const pctLabel = Math.round(r.pct*100) + '%';
+    const lineLabel = (r.prop.estimated ? '~' : '') + fmt(r.prop.line,1);
+    return `
+      <div class="lb-row" data-type="player" data-id="${r.player.id}">
+        <div class="lb-rank">${i+1}</div>
+        <div class="lb-who">
+          <div class="name">${r.player.name}</div>
+          <div class="meta">${r.player.team} · ${r.player.pos} · vs ${r.player.opp}</div>
+        </div>
+        <div class="lb-prop">
+          <div class="label">${r.prop.label}</div>
+          <div class="nums">proj ${fmt(r.c.projected,1)} · line ${lineLabel}</div>
+        </div>
+        <div class="lb-pick ${r.pick}">
+          <div class="pct">${pctLabel}</div>
+          <div class="dir">${r.pick}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  results.innerHTML = `
+    <h3 class="section-lbl">Top 10 props this week</h3>
+    <p class="lb-intro">Every active prop across the roster, ranked by model confidence — whichever side (over or under) the projection leans hardest, regardless of player or position. Search above for any individual player or team.</p>
+    <div class="leaderboard">${rows}</div>
+  `;
+}
+
 // ---------- team profile ----------
 function streakClass(streak){ return streak && streak.toLowerCase().startsWith('won') ? 'win' : 'loss'; }
 
@@ -1273,7 +1354,18 @@ document.addEventListener('click', e => {
   if(oppBtn) selectItem('team', oppBtn.dataset.team);
   const rosterBtn = e.target.closest('.roster-chip');
   if(rosterBtn) selectItem(rosterBtn.dataset.type, rosterBtn.dataset.id);
+  const lbRow = e.target.closest('.lb-row');
+  if(lbRow) selectItem(lbRow.dataset.type, lbRow.dataset.id);
 });
+
+const brandHome = document.getElementById('brandHome');
+function goHome(){
+  input.value = '';
+  suggestBox.hidden = true;
+  renderHome();
+}
+brandHome.addEventListener('click', goHome);
+brandHome.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); goHome(); } });
 
 function selectItem(type, id){
   suggestBox.hidden = true;
@@ -1292,6 +1384,6 @@ document.getElementById('asofDate').textContent = ASOF.toLocaleString(undefined,
   month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit'
 });
 
-// Open with a sample player so the page shows real output at rest
-selectItem('player', 'jjefferson');
+// Land on the top-props leaderboard by default — no player or team selected yet
+renderHome();
 </script>
