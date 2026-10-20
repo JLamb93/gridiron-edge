@@ -799,26 +799,15 @@ function renderNgsPanel(player){
   const profile = qbFieldProfile(player);
   const fieldSvg = renderPassFieldSvg(profile);
   const levelNote = profile.level === 'measured'
-    ? 'Built from NFL Next Gen Stats’ measured field-side and depth-of-target splits for this QB.'
+    ? 'This QB’s own measured field-side and depth-of-target split, computed directly from this season’s real play-by-play (nflverse) — not Next Gen Stats, which doesn’t publish this breakdown anywhere public.'
     : profile.level === 'partial'
-    ? 'Depth shading is modeled from this QB’s real NGS average intended air yards; left/middle/right uses the NFL-wide average split since NGS doesn’t publish a per-player field-side breakdown.'
-    : 'NGS doesn’t publish a per-player breakdown for this QB — this shows the NFL-wide average shape, not this QB’s own tendency.';
-
-  let statTiles = '';
-  if(player.ngs){
-    const ngs = player.ngs;
-    statTiles = `<div class="stat-tiles" style="margin-top:16px; margin-bottom:0">
-      ${ngs.airYards!=null?`<div class="stat-tile"><div class="lbl">Avg. Intended Air Yards</div><div class="big">${fmt(ngs.airYards,1)}</div></div>`:''}
-      ${ngs.aggressiveness!=null?`<div class="stat-tile"><div class="lbl">Aggressiveness</div><div class="big">${fmt(ngs.aggressiveness,1)}%</div></div>`:''}
-      ${ngs.timeToThrow!=null?`<div class="stat-tile"><div class="lbl">Time to Throw</div><div class="big">${fmt(ngs.timeToThrow,2)}s</div></div>`:''}
-    </div>`;
-  }
+    ? 'Depth shading is modeled from this QB’s real average intended air yards; left/middle/right uses the NFL-wide average split since a personal field-side breakdown isn’t available for this QB.'
+    : 'Not enough charted attempts yet for this QB’s own split — this shows the NFL-wide average shape instead.';
 
   return `<h3 class="section-lbl">Passing tendencies</h3>
     <div class="tendency-wrap">
       ${fieldSvg}
       <p class="tendency-note" style="text-align:center">${levelNote}</p>
-      ${statTiles}
     </div>`;
 }
 
