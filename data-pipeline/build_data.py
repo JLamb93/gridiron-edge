@@ -93,12 +93,17 @@ print(f"  {len(roster)} players")
 
 print("Fetching injuries ...")
 injury_rows = read_csv_dicts(fetch_text(INJURIES_URL))
-max_inj_week = max((int(r["week"]) for r in injury_rows if r.get("week")), default=0)
+# Use the most recent week that actually has a published game-status (Q/D/O)
+# designation, not just the most recent week with any row — early in a game
+# week, the newest week's rows are often practice-only (no report_status yet),
+# which would otherwise wipe every real status back to "Healthy".
+weeks_with_status = sorted({int(r["week"]) for r in injury_rows if r.get("week") and r.get("report_status")})
+max_inj_week = weeks_with_status[-1] if weeks_with_status else 0
 latest_injuries = {}
 for r in injury_rows:
     if r.get("week") and int(r["week"]) == max_inj_week and r.get("report_status"):
         latest_injuries[r["gsis_id"]] = r["report_status"]
-print(f"  latest injury report: week {max_inj_week}, {len(latest_injuries)} flagged players")
+print(f"  latest injury report with designations: week {max_inj_week}, {len(latest_injuries)} flagged players")
 
 print("Fetching ESPN standings ...")
 standings = fetch_json(ESPN_STANDINGS_URL)
