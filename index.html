@@ -480,6 +480,45 @@
     color:var(--ink-faint); margin-top:5px;
   }
 
+  /* ---------- Home: result badges (shared by editor picks + track record) ---------- */
+  .result-badge{
+    font-family:var(--font-mono); font-size:10px; font-weight:700; letter-spacing:.04em;
+    padding:2px 7px; border-radius:999px; flex:none; white-space:nowrap;
+  }
+  .rb-good{ background:var(--good-soft); color:var(--good); }
+  .rb-bad{ background:var(--bad-soft); color:var(--bad); }
+  .rb-mid{ background:var(--mid-soft); color:var(--mid); }
+  .rb-faint{ background:var(--surface-raised); color:var(--ink-faint); border:1px solid var(--line); }
+
+  /* ---------- Home: track record ---------- */
+  .trackweek{
+    background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    padding:18px 20px; margin-bottom:16px; box-shadow:var(--shadow);
+  }
+  .trackweek-head{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+  .trackweek-head h4{ font-family:var(--font-display); font-weight:700; font-size:19px; margin:0; }
+  .trackweek-badges{ display:flex; gap:8px; flex-wrap:wrap; }
+  .trackbadge{
+    font-family:var(--font-mono); font-size:11.5px; font-weight:600; padding:4px 10px;
+    border-radius:999px; background:var(--surface-raised); border:1px solid var(--line); color:var(--ink-dim);
+  }
+  .trackbadge.editor{ border-color:var(--accent); color:var(--accent); }
+  .trackweek-cols{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .col-lbl{
+    font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-faint);
+    margin-bottom:8px; border-bottom:1px solid var(--line); padding-bottom:6px;
+  }
+  .track-pick-row{
+    display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid var(--line);
+    font-size:12.5px;
+  }
+  .track-pick-row:last-child{ border-bottom:0; }
+  .tp-name{ font-weight:600; flex:none; max-width:40%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tp-detail{ color:var(--ink-faint); font-family:var(--font-mono); font-size:11px; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  @media (max-width:640px){
+    .trackweek-cols{ grid-template-columns:1fr; }
+  }
+
   /* ---------- Home: top props leaderboard ---------- */
   .lb-intro{ color:var(--ink-dim); font-size:14px; margin:0 0 18px; max-width:62ch; line-height:1.6; }
   .leaderboard{
@@ -655,6 +694,8 @@
 let PLAYERS = [];
 let TEAMS = [];
 let META = {};
+let EDITOR_PICKS = { label:'This week', updatedAt:null, picks:[] };
+let PICKS_HISTORY = { weeks:[] };
 
 const STATUS_FACTOR = { Healthy:1, Probable:0.98, Questionable:0.93, Out:0 };
 const POS_RANK_KEY = { QB:'pass', RB:'rush', WR:'rec', TE:'rec' };
@@ -1033,20 +1074,110 @@ function renderPickem(){
   }).join('');
 
   return `
-    <p class="lb-intro">Win probability for every Week 7 game — built from each team's season win%, a small bump for a better-ranked defense, and home-field edge. Click a game to see that team's full profile.</p>
-    <div class="leaderboard pickem-list">${rows || '<div class="lb-row">No Week 7 games on file.</div>'}</div>
+    <p class="lb-intro">Win probability for every team's next game on the board — built from each team's season win%, a small bump for a better-ranked defense, and home-field edge. Click a game to see that team's full profile.</p>
+    <div class="leaderboard pickem-list">${rows || '<div class="lb-row">No upcoming games on file.</div>'}</div>
     <p class="legend" style="margin-top:-14px">Model: win% × 60, plus up to 10 points for defensive rank, plus a 6-point home-field edge, compared on a logistic curve. Same transparent-math approach as the prop model above — not a guarantee.</p>`;
+}
+
+function resultBadge(result){
+  const map = { hit:['HIT','good'], miss:['MISS','bad'], push:['PUSH','mid'], 'no-data':['PENDING','faint'] };
+  const [label, cls] = map[result] || ['—','faint'];
+  return `<span class="result-badge rb-${cls}">${label}</span>`;
+}
+
+function renderEditorPicks(){
+  const ep = EDITOR_PICKS;
+  const picks = ep.picks || [];
+  const updated = ep.updatedAt ? new Date(ep.updatedAt).toLocaleDateString(undefined,{month:'short', day:'numeric'}) : null;
+
+  if(!picks.length){
+    return `
+      <p class="lb-intro">Hand-picked plays, posted here each week alongside the model's own Top 10 — both get checked against real results in Track Record once the games are final.</p>
+      <div class="bye-note"><b>No editor picks posted yet for this slate.</b> Check back closer to kickoff.</div>`;
+  }
+
+  const rows = picks.map(p => {
+    const who = p.playerName ? `${p.playerName}${p.team ? ' · '+p.team : ''}` : (p.team || 'Game prop');
+    return `
+      <div class="lb-row" style="cursor:default">
+        <div class="lb-who" style="flex:1 1 auto">
+          <div class="name">${who}</div>
+          <div class="meta">${p.propLabel}</div>
+        </div>
+        <div class="lb-prop" style="text-align:right; flex:none">
+          <div class="label">${p.pick === 'over' ? 'Over' : p.pick === 'under' ? 'Under' : ''} ${fmt(p.line,p.line%1?1:0)}</div>
+        </div>
+        ${p.result ? `<div style="margin-left:14px">${resultBadge(p.result)}</div>` : ''}
+      </div>`;
+  }).join('');
+
+  return `
+    <p class="lb-intro">${ep.source || 'This week’s hand-picked plays.'}${updated ? ` — posted ${updated}` : ''}</p>
+    <div class="leaderboard">${rows}</div>`;
+}
+
+function renderTrackRecordWeek(w){
+  const algo = w.algorithm || { picks:[], accuracy:null };
+  const editor = w.editor || null;
+  const algoHits = algo.picks.filter(p=>p.result==='hit').length;
+  const algoGradeable = algo.picks.filter(p=>p.result==='hit'||p.result==='miss').length;
+  const editorHits = editor ? editor.picks.filter(p=>p.result==='hit').length : 0;
+  const editorGradeable = editor ? editor.picks.filter(p=>p.result==='hit'||p.result==='miss').length : 0;
+
+  const pickRow = (p, name) => `
+    <div class="track-pick-row">
+      <span class="tp-name">${name}</span>
+      <span class="tp-detail">${p.propLabel} ${p.pick==='over'?'O':p.pick==='under'?'U':''} ${p.line!=null?fmt(p.line, p.line%1?1:0):''}${p.actual!=null?` → ${p.actual}`:''}</span>
+      ${resultBadge(p.result)}
+    </div>`;
+
+  return `
+    <div class="trackweek">
+      <div class="trackweek-head">
+        <h4>Week ${w.week}</h4>
+        <div class="trackweek-badges">
+          <span class="trackbadge">Algorithm ${algoHits}/${algoGradeable}${algo.accuracy!=null?` (${algo.accuracy}%)`:''}</span>
+          ${editor ? `<span class="trackbadge editor">Editor ${editorHits}/${editorGradeable}${editor.accuracy!=null?` (${editor.accuracy}%)`:''}</span>` : ''}
+        </div>
+      </div>
+      <div class="trackweek-cols">
+        <div>
+          <div class="col-lbl">Algorithm Top 10</div>
+          ${algo.picks.map(p => pickRow(p, p.playerName)).join('')}
+        </div>
+        ${editor ? `<div>
+          <div class="col-lbl">Editor Picks</div>
+          ${editor.picks.map(p => pickRow(p, p.playerName || p.team || 'Game prop')).join('')}
+        </div>` : ''}
+      </div>
+    </div>`;
+}
+
+function renderTrackRecord(){
+  const weeks = [...(PICKS_HISTORY.weeks||[])].sort((a,b) => b.week - a.week);
+  if(!weeks.length){
+    return `
+      <p class="lb-intro">Once a week's games are final, its Top 10 and editor picks get checked against the real stats and recorded here.</p>
+      <div class="bye-note"><b>No graded weeks yet.</b> The first Track Record entry lands once a full week's results are in.</div>`;
+  }
+  return `
+    <p class="lb-intro">Every week's Top 10 algorithm picks and editor picks, graded against real final stats once that week's games are over. "Pending" means that game hadn't been played yet when graded.</p>
+    ${weeks.map(renderTrackRecordWeek).join('')}`;
 }
 
 function renderHome(){
   const results = document.getElementById('results');
+  const titles = { props:'Top 10 props this week', pickem:"This week's pick'em", editor:"Editor's picks", track:'Track record' };
+  const bodies = { props:renderTopProps, pickem:renderPickem, editor:renderEditorPicks, track:renderTrackRecord };
   results.innerHTML = `
     <div class="home-tabs">
       <button class="home-tab ${homeTab==='props'?'active':''}" data-tab="props">Top Props</button>
       <button class="home-tab ${homeTab==='pickem'?'active':''}" data-tab="pickem">Pick'em</button>
+      <button class="home-tab ${homeTab==='editor'?'active':''}" data-tab="editor">Editor's Picks</button>
+      <button class="home-tab ${homeTab==='track'?'active':''}" data-tab="track">Track Record</button>
     </div>
-    <h3 class="section-lbl">${homeTab === 'props' ? 'Top 10 props this week' : "Week 7 pick'em"}</h3>
-    ${homeTab === 'props' ? renderTopProps() : renderPickem()}
+    <h3 class="section-lbl">${titles[homeTab]}</h3>
+    ${bodies[homeTab]()}
   `;
 }
 function setHomeTab(tab){ homeTab = tab; renderHome(); }
@@ -1259,12 +1390,23 @@ function selectItem(type, id){
 
 document.getElementById('results').innerHTML = `<p class="legend">Loading real stats from nflverse + ESPN…</p>`;
 
-fetch('./nfl_data.json')
-  .then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-  .then(data => {
+function fetchJsonOptional(url, fallback){
+  return fetch(url)
+    .then(r => r.ok ? r.json() : fallback)
+    .catch(() => fallback);
+}
+
+Promise.all([
+  fetch('./nfl_data.json').then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }),
+  fetchJsonOptional('./editor_picks.json', { label:'This week', updatedAt:null, picks:[] }),
+  fetchJsonOptional('./picks_history.json', { weeks:[] }),
+])
+  .then(([data, editorData, historyData]) => {
     PLAYERS = data.players;
     TEAMS = data.teams;
     META = data.meta;
+    EDITOR_PICKS = editorData;
+    PICKS_HISTORY = historyData;
     const asofEl = document.getElementById('asofDate');
     const generated = META.generatedAt ? new Date(META.generatedAt) : null;
     asofEl.textContent = generated

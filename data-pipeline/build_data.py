@@ -24,12 +24,13 @@ from collections import defaultdict
 from datetime import datetime, timezone
 
 SEASON = 2026
-CURRENT_WEEK = 7  # the week we are projecting FOR
+# No single "current week" constant anymore — a game week spans Thu/Sun/Mon,
+# so each team's next game is resolved individually below from how far its
+# own play-by-play actually goes (see team_played_weeks / candidate_weeks).
 PBP_URL = f"https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_{SEASON}.csv.gz"
 ROSTER_URL = f"https://github.com/nflverse/nflverse-data/releases/download/rosters/roster_{SEASON}.csv"
 INJURIES_URL = f"https://github.com/nflverse/nflverse-data/releases/download/injuries/injuries_{SEASON}.csv"
 ESPN_STANDINGS_URL = f"https://site.api.espn.com/apis/v2/sports/football/nfl/standings?season={SEASON}"
-ESPN_SCOREBOARD_URL = f"https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?seasontype=2&week={CURRENT_WEEK}"
 
 TEAM_FIX = {"LA": "LAR"}  # nflverse play-by-play spelling -> site spelling
 ESPN_FIX = {"WSH": "WAS", "LAR": "LAR"}  # ESPN spelling -> site spelling
@@ -107,8 +108,26 @@ print(f"  latest injury report with designations: week {max_inj_week}, {len(late
 
 print("Fetching ESPN standings ...")
 standings = fetch_json(ESPN_STANDINGS_URL)
-print("Fetching ESPN Week", CURRENT_WEEK, "scoreboard ...")
-scoreboard = fetch_json(ESPN_SCOREBOARD_URL)
+
+# A game week spans multiple days (Thu/Sun/Mon) — by the time this runs, some
+# teams may have already played "this week" while others haven't. For each
+# team we want its own next UNPLAYED game, not a single global week number.
+team_played_weeks = defaultdict(set)
+for r in pbp:
+    wk = r.get("week")
+    if not wk: continue
+    wk = int(wk)
+    if r.get("posteam"): team_played_weeks[fix_team(r["posteam"])].add(wk)
+    if r.get("defteam"): team_played_weeks[fix_team(r["defteam"])].add(wk)
+
+candidate_weeks = sorted({max(team_played_weeks[a], default=0) + 1 for a in TEAM_NAMES})
+candidate_weeks += [w + 1 for w in candidate_weeks]  # cover a team on bye at its first candidate week
+candidate_weeks = sorted(set(w for w in candidate_weeks if w >= 1))
+print("Fetching ESPN scoreboards for weeks", candidate_weeks, "...")
+scoreboards_by_week = {}
+for wk in candidate_weeks:
+    url = f"https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?seasontype=2&week={wk}"
+    scoreboards_by_week[wk] = fetch_json(url)
 
 # ---------------------------------------------------------------------------
 # Team records / streaks / home-away splits from ESPN standings
@@ -145,27 +164,34 @@ for div, abbrs in DIVISIONS.items():
         team_stats[a]["placeText"] = f"{ord_} in {div}"
 
 # ---------------------------------------------------------------------------
-# Week 7 schedule: opponent + home/away/neutral from ESPN scoreboard
+# Each team's next unplayed game — opponent + home/away/neutral + which week
+# — resolved individually so a team already done with "this week" rolls over
+# to next week while a team still waiting (e.g. tonight's MNF game) doesn't.
 # ---------------------------------------------------------------------------
-scheduled = set()
-for event in scoreboard["events"]:
-    comp = event["competitions"][0]
-    neutral = bool(comp.get("neutralSite"))
-    competitors = comp["competitors"]
-    home = next(c for c in competitors if c["homeAway"] == "home")
-    away = next(c for c in competitors if c["homeAway"] == "away")
-    h, a = fix_espn_team(home["team"]["abbreviation"]), fix_espn_team(away["team"]["abbreviation"])
-    scheduled.add(h); scheduled.add(a)
-    team_stats.setdefault(h, {})["nextOpp"] = a
-    team_stats.setdefault(h, {})["homeGame"] = "neutral" if neutral else True
-    team_stats.setdefault(a, {})["nextOpp"] = h
-    team_stats.setdefault(a, {})["homeGame"] = "neutral" if neutral else False
+game_by_team_week = {}  # (abbr, week) -> {opp, homeGame}
+for wk, sb in scoreboards_by_week.items():
+    for event in sb["events"]:
+        comp = event["competitions"][0]
+        neutral = bool(comp.get("neutralSite"))
+        competitors = comp["competitors"]
+        home = next(c for c in competitors if c["homeAway"] == "home")
+        away = next(c for c in competitors if c["homeAway"] == "away")
+        h, a = fix_espn_team(home["team"]["abbreviation"]), fix_espn_team(away["team"]["abbreviation"])
+        game_by_team_week[(h, wk)] = {"opp": a, "homeGame": "neutral" if neutral else True}
+        game_by_team_week[(a, wk)] = {"opp": h, "homeGame": "neutral" if neutral else False}
 
 for abbr in TEAM_NAMES:
-    if abbr not in scheduled:
-        team_stats.setdefault(abbr, {})["nextOpp"] = None
-        team_stats[abbr]["homeGame"] = None
-        team_stats[abbr]["bye"] = True
+    first_candidate = max(team_played_weeks[abbr], default=0) + 1
+    game = game_by_team_week.get((abbr, first_candidate)) or game_by_team_week.get((abbr, first_candidate + 1))
+    ts = team_stats.setdefault(abbr, {})
+    if game:
+        ts["nextOpp"] = game["opp"]
+        ts["homeGame"] = game["homeGame"]
+        ts["bye"] = False
+    else:
+        ts["nextOpp"] = None
+        ts["homeGame"] = None
+        ts["bye"] = True
 
 # ---------------------------------------------------------------------------
 # Defense: real sacks / QB hits / yards allowed, from play-by-play
@@ -369,7 +395,7 @@ for team, gids in by_team_passers.items():
         "num": info.get("jersey_number") or "—", "status": status_for(top),
         "bye": bye, "opp": "BYE" if bye else opp,
         "oppRank": {} if bye else opp_rank_for("QB", opp),
-        "news": f"Season averages and directional splits computed from real play-by-play through Week {CURRENT_WEEK-1}.",
+        "news": f"Season averages and directional splits computed from real play-by-play through Week {built['log'][-1]['wk']}.",
         "log": built["log"], "season": built["season"], "ngs": built["ngs"], "props": props,
     })
 
@@ -414,7 +440,7 @@ for team, posmap in by_team_pos_candidates.items():
                 "num": info.get("jersey_number") or "—", "status": status_for(gid),
                 "bye": bye, "opp": "BYE" if bye else opp,
                 "oppRank": {} if bye else opp_rank_for(pos, opp),
-                "news": f"Season line computed from real play-by-play through Week {CURRENT_WEEK-1}.",
+                "news": f"Season line computed from real play-by-play through Week {built['log'][-1]['wk']}.",
                 "log": built["log"], "season": built["season"], "props": props,
             })
 
@@ -434,8 +460,12 @@ for abbr, name in TEAM_NAMES.items():
         "defense": d,
     })
 
+max_played_week = max((wk for weeks in team_played_weeks.values() for wk in weeks), default=0)
+pending_weeks = sorted({max(team_played_weeks[a], default=0) + 1 for a in TEAM_NAMES if not team_stats[a]["bye"]})
+
 out = {
-    "meta": {"season": SEASON, "throughWeek": CURRENT_WEEK-1, "projectingWeek": CURRENT_WEEK,
+    "meta": {"season": SEASON, "throughWeek": max_played_week,
+             "pendingWeeks": pending_weeks,
              "generatedAt": datetime.now(timezone.utc).isoformat(),
              "generatedBy": "nflverse play-by-play + rosters + injuries, ESPN standings/scoreboard"},
     "teams": teams,

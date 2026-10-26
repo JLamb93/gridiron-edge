@@ -1,0 +1,230 @@
+{
+ "weeks": [
+  {
+   "week": 7,
+   "algorithm": {
+    "picks": [
+     {
+      "playerId": "dakprescottdal",
+      "playerName": "Dak Prescott",
+      "team": "DAL",
+      "propKey": "cmp",
+      "propLabel": "Completions",
+      "unit": "cmp",
+      "line": 27.0,
+      "pick": "over",
+      "pct": 0.9106,
+      "projected": 32.2,
+      "actual": null,
+      "result": "no-data"
+     },
+     {
+      "playerId": "sionevakidet",
+      "playerName": "Sione Vaki",
+      "team": "DET",
+      "propKey": "recYd",
+      "propLabel": "Receiving Yards",
+      "unit": "yds",
+      "line": 10.5,
+      "pick": "over",
+      "pct": 0.906,
+      "projected": 13.4,
+      "actual": null,
+      "result": "no-data"
+     },
+     {
+      "playerId": "jkdobbinsden",
+      "playerName": "J.K. Dobbins",
+      "team": "DEN",
+      "propKey": "rec",
+      "propLabel": "Receptions",
+      "unit": "rec",
+      "line": 1.5,
+      "pick": "over",
+      "pct": 0.9042,
+      "projected": 2.3,
+      "actual": null,
+      "result": "no-data"
+     },
+     {
+      "playerId": "aaronrodgerspit",
+      "playerName": "Aaron Rodgers",
+      "team": "PIT",
+      "propKey": "cmp",
+      "propLabel": "Completions",
+      "unit": "cmp",
+      "line": 24.0,
+      "pick": "over",
+      "pct": 0.8884,
+      "projected": 28.8,
+      "actual": 19,
+      "result": "miss"
+     },
+     {
+      "playerId": "tuckerkraftgb",
+      "playerName": "Tucker Kraft",
+      "team": "GB",
+      "propKey": "rec",
+      "propLabel": "Receptions",
+      "unit": "rec",
+      "line": 4.0,
+      "pick": "over",
+      "pct": 0.8882,
+      "projected": 5.5,
+      "actual": 4,
+      "result": "push"
+     },
+     {
+      "playerId": "kirkcousinslv",
+      "playerName": "Kirk Cousins",
+      "team": "LV",
+      "propKey": "passTd",
+      "propLabel": "Passing TDs",
+      "unit": "td",
+      "line": 2.5,
+      "pick": "under",
+      "pct": 0.8706,
+      "projected": 1.7,
+      "actual": 2,
+      "result": "hit"
+     },
+     {
+      "playerId": "tylerallgeierari",
+      "playerName": "Tyler Allgeier",
+      "team": "ARI",
+      "propKey": "recYd",
+      "propLabel": "Receiving Yards",
+      "unit": "yds",
+      "line": 9.0,
+      "pick": "over",
+      "pct": 0.8633,
+      "projected": 10.0,
+      "actual": 30,
+      "result": "hit"
+     },
+     {
+      "playerId": "patrickmahomeskc",
+      "playerName": "Patrick Mahomes",
+      "team": "KC",
+      "propKey": "passTd",
+      "propLabel": "Passing TDs",
+      "unit": "td",
+      "line": 2.0,
+      "pick": "under",
+      "pct": 0.854,
+      "projected": 1.1,
+      "actual": 0,
+      "result": "hit"
+     },
+     {
+      "playerId": "brockbowerslv",
+      "playerName": "Brock Bowers",
+      "team": "LV",
+      "propKey": "recYd",
+      "propLabel": "Receiving Yards",
+      "unit": "yds",
+      "line": 95.5,
+      "pick": "under",
+      "pct": 0.847,
+      "projected": 78.4,
+      "actual": 73,
+      "result": "hit"
+     },
+     {
+      "playerId": "dkmetcalfpit",
+      "playerName": "DK Metcalf",
+      "team": "PIT",
+      "propKey": "rec",
+      "propLabel": "Receptions",
+      "unit": "rec",
+      "line": 5.0,
+      "pick": "over",
+      "pct": 0.8363,
+      "projected": 7.4,
+      "actual": 2,
+      "result": "miss"
+     }
+    ],
+    "accuracy": 66.7
+   },
+   "editor": {
+    "picks": [
+     {
+      "playerName": "Drake Maye",
+      "team": "NE",
+      "propLabel": "Passing Yards",
+      "pick": "over",
+      "line": 200,
+      "result": "hit"
+     },
+     {
+      "playerName": "D'Andre Swift",
+      "team": "CHI",
+      "propLabel": "Rush + Rec Yards",
+      "pick": "over",
+      "line": 60,
+      "result": "hit"
+     },
+     {
+      "playerName": null,
+      "team": null,
+      "propLabel": "Game Total (NE @ CHI)",
+      "pick": "under",
+      "line": 57.5,
+      "result": "hit"
+     },
+     {
+      "playerName": "A.J. Brown",
+      "team": null,
+      "propLabel": "Receiving Yards",
+      "pick": "over",
+      "line": 40,
+      "result": "hit"
+     },
+     {
+      "playerName": "Caleb Williams",
+      "team": "CHI",
+      "propLabel": "Passing Yards",
+      "pick": "over",
+      "line": 200,
+      "result": "hit"
+     },
+     {
+      "playerName": "Rome Odunze",
+      "team": "CHI",
+      "propLabel": "Receptions",
+      "pick": "over",
+      "line": 3,
+      "result": "hit"
+     },
+     {
+      "playerName": "Luther Burden III",
+      "team": "CHI",
+      "propLabel": "Receptions",
+      "pick": "over",
+      "line": 3,
+      "result": "hit"
+     },
+     {
+      "playerName": "Rhamondre Stevenson",
+      "team": "NE",
+      "propLabel": "Receptions",
+      "pick": "over",
+      "line": 2,
+      "result": "hit"
+     },
+     {
+      "playerName": "Caleb Williams",
+      "team": "CHI",
+      "propLabel": "Rushing Yards",
+      "pick": "over",
+      "line": 10,
+      "result": "hit"
+     }
+    ],
+    "accuracy": 100.0,
+    "source": "DraftKings 9-Pick Parlay (SGP), +750, $50 -> $375 \u2014 confirmed Won"
+   }
+  }
+ ]
+}

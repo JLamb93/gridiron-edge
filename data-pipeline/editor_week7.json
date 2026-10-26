@@ -1,0 +1,14 @@
+{
+  "source": "DraftKings 9-Pick Parlay (SGP), +750, $50 -> $375 — confirmed Won",
+  "picks": [
+    {"playerName": "Drake Maye", "team": "NE", "propLabel": "Passing Yards", "pick": "over", "line": 200, "result": "hit"},
+    {"playerName": "D'Andre Swift", "team": "CHI", "propLabel": "Rush + Rec Yards", "pick": "over", "line": 60, "result": "hit"},
+    {"playerName": null, "team": null, "propLabel": "Game Total (NE @ CHI)", "pick": "under", "line": 57.5, "result": "hit"},
+    {"playerName": "A.J. Brown", "team": null, "propLabel": "Receiving Yards", "pick": "over", "line": 40, "result": "hit"},
+    {"playerName": "Caleb Williams", "team": "CHI", "propLabel": "Passing Yards", "pick": "over", "line": 200, "result": "hit"},
+    {"playerName": "Rome Odunze", "team": "CHI", "propLabel": "Receptions", "pick": "over", "line": 3, "result": "hit"},
+    {"playerName": "Luther Burden III", "team": "CHI", "propLabel": "Receptions", "pick": "over", "line": 3, "result": "hit"},
+    {"playerName": "Rhamondre Stevenson", "team": "NE", "propLabel": "Receptions", "pick": "over", "line": 2, "result": "hit"},
+    {"playerName": "Caleb Williams", "team": "CHI", "propLabel": "Rushing Yards", "pick": "over", "line": 10, "result": "hit"}
+  ]
+}

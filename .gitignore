@@ -2,3 +2,6 @@ node_modules/
 data-pipeline/*.csv
 data-pipeline/*.csv.gz
 data-pipeline/nfl_data.json
+data-pipeline/picks_history.json
+data-pipeline/roster_2026.csv
+data-pipeline/injuries_2026.csv
